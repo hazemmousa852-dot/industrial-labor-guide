@@ -21,6 +21,19 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Scale,
+  Waves,
+  ShieldCheck,
+  HardHat,
+  Truck,
+  Ship,
+  Stethoscope,
+  Anchor,
+  Pill,
+  Wheat,
+} from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -177,6 +190,7 @@ function Hero() {
             {[
               ["#compare", "الفرق بين المنشآت"],
               ["#hours", "ساعات التواجد"],
+              ["#decisions", "قرارات 2025"],
               ["#overtime", "العمل الإضافي"],
               ["#sick", "الإجازة المرضية"],
             ].map(([href, t]) => (
@@ -390,7 +404,7 @@ function Hours() {
             </div>
 
             {rows.map((r) => {
-              const segments = [];
+              const segments: { hours: number; isLast: boolean; idx: number }[] = [];
               // أقسام الشغل بحد أقصى 5 ساعات متصلة، بعدها راحة 1 ساعة (باستثناء آخر قسم لا يحتاج راحة بعده)
               let remaining = r.work;
               let segIndex = 0;
@@ -400,8 +414,8 @@ function Hours() {
                 remaining -= segHours;
                 segIndex++;
               }
-              const breaksBetween = segments.length - 1;
               return (
+                <>
                 <div key={r.type} className="space-y-3">
                   <p className="font-display text-lg font-bold" style={{ color: r.color }}>
                     {r.type}: إجمالي التواجُد <span className="font-mono-ar">{r.total}</span> ساعات
@@ -439,6 +453,7 @@ function Hours() {
                     {r.type === "صناعية" ? "5 شغل + 1 راحة + 2 شغل = 8 ساعات تواجُد" : "5 شغل + 1 راحة + 3 شغل = 9 ساعات تواجُد"}
                   </p>
                 </div>
+                </>
               );
             })}
           </div>
@@ -447,12 +462,225 @@ function Hours() {
 }
 
 /* =================================================================
+   قسم قرارات وزارة العمل 2025
+================================================================= */
+function Decisions() {
+  return (
+    <Section num="03" label="القرارات الوزارية · 2025" title="القرارات الوزارية الأربعة الجديدة" style={{ background: "#fff" }}>
+      <FadeUp>
+        <p className="max-w-3xl text-lg leading-relaxed text-foreground/85">
+          في ديسمبر 2025 صدرت أربعة قرارات من وزارة العمل رقم 288 – 289 – 290 – 292،
+          وكل قرار بيحكم حاجة معينة في اليوم العملي. هنا ملخص كل قرار مع تطبيقه العملي.
+        </p>
+      </FadeUp>
+      <div className="mt-8 grid gap-6 md:grid-cols-2">
+        {[
+          {
+            no: "289/2025",
+            title: "ساعات العمل في المنشآت الصناعية",
+            icon: Factory,
+            color: C.teal,
+            intro: "لا يجوز تشغيل العامل تشغيلاً فعلياً أكثر من 8 ساعات يومياً و48 ساعة أسبوعياً — وفترات الراحة مش محسوبة منها.",
+            detail: (
+              <ul className="space-y-2 text-sm leading-relaxed">
+                <li>• ساعات العمل الفعلية = 8 ساعات يومياً / 48 ساعة أسبوعياً كحد أقصى.</li>
+                <li>• فترات الطعام والراحة لا تدخل ضمن ساعات العمل الفعلية.</li>
+                <li>• لو عقد العمل أو اللائحة فيه مزايا أفضل للعمال، بتتقيد بالمزايا الأفضل.</li>
+                <li>• صاحب العمل يقدر يزيد الساعات لمواجهة ضرورات غير عادية — بضوابط المادة 121 (موافقة وإعلاء الحد).</li>
+              </ul>
+            ),
+            app: "تطبيق عملي: عامل في مصنع حديد شغال من 8 الصبح — أقصى ساعة فعلي يوصلها 4 العصر (مع ساعة راحة)، ولو عدى كده يبقى أوفر تايم ×1.35 أو ×1.70.",
+            accTitle: "تفاصيل القرار 289",
+            accItems: [
+              ["الحد اليومي", "8 ساعات فعلي — لا تدخل فيها الراحة"],
+              ["الحد الأسبوعي", "48 ساعة فعلي"],
+              ["تجاوز الحد", "بموافقة وفق المادة 121 من قانون العمل"],
+            ],
+          },
+          {
+            no: "288/2025",
+            title: "العمل دون فترة راحة والأعمال المرهقة",
+            icon: Waves,
+            color: C.amber,
+            intro: "لا يشتغل أي عامل أكثر من 5 ساعات متصلة دون راحة — ومجموع فترات الراحة مش أقل من ساعة.",
+            detail: (
+              <ul className="space-y-2 text-sm leading-relaxed">
+                <li>• القاعدة: فترة أو أكثر للراحة/الطعام لا تقل في مجموعها عن ساعة.</li>
+                <li>• الاستثناءات: المخابز، المستشفيات، الصيدليات، الموانئ والمطارات، توصيل الطلبات والنقل التشاركي وغيرها (14 فئة).</li>
+                <li>• في الاستثناءات: الراحة تتعوض بفترة تعويضية، ومشروبات/أكل خفيف أثناء الشغل، والحد الأقصى المتصل 6 ساعات (5 للسائقين).</li>
+                <li>• الأعمال المرهقة (أفران صهر، لحام، دوكو، رصاص، أسبست…) الراحة بتُحسب من ساعات العمل الفعلية.</li>
+              </ul>
+            ),
+            app: "تطبيق عملي: حتى في الاستثناءات، السائق مش هيقود أكتر من 5 ساعات متصلة — والحد المطلق لأي عامل 6 ساعات متصلة مهما كانت الظروف.",
+            accTitle: "تفاصيل القرار 288",
+            accItems: [
+              ["قاعدة الراحة", "راحة ساعة+ يومياً، و5 ساعات عمل متصلة كحد أقصى"],
+              ["الحد المطلق المتصل", "6 ساعات في الحالات الاستثنائية — 5 للسائقين"],
+              ["الأعمال المرهقة", "راحتها تُحسب من ساعات العمل الفعلية"],
+            ],
+          },
+          {
+            no: "290/2025",
+            title: "الأعمال المتقطعة بطبيعتها (تواجُد حتى 12 ساعة)",
+            icon: Truck,
+            color: "#5a4e91",
+            intro: "فئات معينة بطبيعة شغلها متقطع — يجوز تواجدها حتى 12 ساعة يومياً، مع أجر إضافي عن الساعات الزائدة.",
+            detail: (
+              <ul className="space-y-2 text-sm leading-relaxed">
+                <li>• القاعدة العامة: التواجد لا يتجاوز 10 ساعات يومياً.</li>
+                <li>• الأعمال المتقطعة (7 فئات): النقل (مياه/سكك/بر/جو)، مستودعات المحاصيل الزراعية، ربط البواخر وإصلاح السفن، الرعاية الصحية الطارئة، النقل بفترات انتظار بين الرحلات، الدعم الفني الرقمي المتقطع، مراكز البيانات.</li>
+                <li>• التزام صاحب العمل بأجر إضافي عن الساعات الزائدة عن الأصلية (مادة 121).</li>
+                <li>• إلزام صاحب العمل بسجل ورقي أو إلكتروني يرصد ساعات العمل الأصلية والإضافية والراحة والتواجد.</li>
+              </ul>
+            ),
+            app: "تطبيق عملي: سائق نقل ركاب بطبيعته شغله متقطع — يجوز يتواجد 12 ساعة، لكن ساعات شغله الفعلية هي اللي بتتحسب أوفر تايم — والسجل الورقي إلزامي لو اتجاوز 10 ساعات.",
+            accTitle: "تفاصيل القرار 290",
+            accItems: [
+              ["الحد العام للتواجد", "10 ساعات يومياً"],
+              ["حد الأعمال المتقطعة", "12 ساعة يومياً"],
+              ["الساعات الزائدة", "أجر إضافي + سجل ورقي/إلكتروني إلزامي"],
+            ],
+          },
+          {
+            no: "292/2025",
+            title: "التجهيزية والتكميلية والحراسة والنظافة",
+            icon: ShieldCheck,
+            color: C.navy,
+            intro: "أعمال التحضير والتشغيل بعد الورد والحراسة والنظافة لها نظام خاص: 48 ساعة أسبوعياً وأضافي 12 ساعة بحد أقصى ساعتين يومياً.",
+            detail: (
+              <ul className="space-y-2 text-sm leading-relaxed">
+                <li>• التجهيزية: تجهيز الماكينات والأفران والمواد الخام وبيئة العمل قبل بدء الورود.</li>
+                <li>• التكميلية: صيانة خلل مفاجئ، أعمال لا يجوز وقفها (بترول، طاقة، مراكز بيانات)، إتمام شحن/تفريغ، إنهاء عمليات.</li>
+                <li>• الحراسة: الخفراء، الإطفاء، أنظمة الأمن والمراقبة الإلكترونية والسيبرانية.</li>
+                <li>• النظافة: تنظيف وتعقيم الأماكن قبل الشغل أو بعده.</li>
+              </ul>
+            ),
+            app: "تطبيق عملي: حارس أمن في شركة: 48 ساعة فعلي أسبوعياً + إضافي 12 ساعة كحد أقصى (ساعتين يومياً) — لو عدى الساعتين دول، التجاوز مش مشروع إلا بقرار استثنائي.",
+            accTitle: "تفاصيل القرار 292",
+            accItems: [
+              ["الحد الأسبوعي الفعلي", "48 ساعة فعلي"],
+              ["حد الأوفر تايم الأسبوعي", "12 ساعة أسبوعياً"],
+              ["حد الأوفر تايم اليومي", "ساعتان كحد أقصى يومياً"],
+            ],
+          },
+        ].map((d, i) => {
+          const Icon = d.icon;
+          return (
+            <FadeUp key={d.no} delay={i * 70} className="flex flex-col rounded-3xl border-2 bg-white p-6 transition-transform duration-300 hover:-translate-y-1" style={{ borderColor: d.color }}>
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-xl text-white" style={{ backgroundColor: d.color }}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-display text-lg font-bold">{d.title}</p>
+                    <span className="font-mono-ar text-xs font-bold tracking-widest" style={{ color: d.color }}>قرار رقم {d.no}</span>
+                  </div>
+                </div>
+              </div>
+              <p className="mb-3 leading-relaxed text-foreground/85">{d.intro}</p>
+              {d.detail}
+              <div className="mt-3 rounded-2xl p-3 text-sm font-semibold leading-relaxed" style={{ background: d.color + "15", color: d.color }}>
+                {d.app}
+              </div>
+              <Accordion type="single" collapsible className="mt-4">
+                <AccordionItem value={d.no}>
+                  <AccordionTrigger className="px-1 text-sm font-bold" style={{ color: d.color }}>
+                    {d.accTitle} — جدول النقاط
+                  </AccordionTrigger>
+                  <AccordionContent className="px-1">
+                    <table className="w-full text-right text-sm">
+                      <tbody>
+                        {d.accItems.map(([k, v]) => (
+                          <tr key={k} className="border-b last:border-0">
+                            <td className="py-1.5 pr-1 font-semibold text-muted-foreground">{k}</td>
+                            <td className="py-1.5 pr-1">{v}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </FadeUp>
+          );
+        })}
+      </div>
+      <FadeUp className="mt-8 flex items-start gap-3 rounded-3xl border-2 p-5 text-sm leading-relaxed" style={{ borderColor: C.teal, background: C.tealLight }}>
+        <Scale className="mt-0.5 h-6 w-6 shrink-0" style={{ color: C.teal }} />
+        <p>
+          <strong>ملاحظة منهجية:</strong> هذه القرارات صدرت بعد المحاضرة، وهي بتحدّث الحد اليومي للمنشآت الصناعية
+          إلى 8 ساعات فعلي (قرار 289). في الدليل ده بقينا على منهج المحاضرة (7 فعلي + 1 راحة = 8 تواجُد)،
+          والقرارات الجديدة موضحة فوق عشان تعرف آخر تحديث.
+        </p>
+      </FadeUp>
+    </Section>
+  );
+}
+
+/* =================================================================
    القسم الثالث: الأوفر تايم
 ================================================================= */
+/* أنواع المنشآت وأحكامها في الأوفر تايم */
+const ESTABLISHMENTS = [
+  {
+    value: "industrial",
+    label: "منشأة صناعية",
+    color: C.teal,
+    note: "قرار 289/2025: 8 ساعات فعلية كحد أقصى يومياً، 48 أسبوعياً",
+    maxDaily: 8,
+    maxWeekly: 48,
+    dailyOvertimeCap: null,
+    weeklyOvertimeCap: null,
+  },
+  {
+    value: "commercial",
+    label: "منشأة غير صناعية (تجارية)",
+    color: C.navy,
+    note: "8 ساعات فعلية + ساعة راحة = 9 ساعات تواجُد يومياً",
+    maxDaily: 8,
+    maxWeekly: 48,
+    dailyOvertimeCap: null,
+    weeklyOvertimeCap: null,
+  },
+  {
+    value: "intermittent",
+    label: "عمل متقطع بطبيعته",
+    color: "#5a4e91",
+    note: "قرار 290/2025: تواجُد حتى 12 ساعة، مع أجر إضافي عن الزيادة",
+    maxDaily: 12,
+    maxWeekly: null,
+    dailyOvertimeCap: null,
+    weeklyOvertimeCap: null,
+  },
+  {
+    value: "prep",
+    label: "تجهيزية / حراسة / نظافة",
+    color: C.amber,
+    note: "قرار 292/2025: 48 ساعة فعلي أسبوعياً، إضافي 12 أسبوعياً بحد أقصى ساعتين/يوم",
+    maxDaily: 8,
+    maxWeekly: 48,
+    dailyOvertimeCap: 2,
+    weeklyOvertimeCap: 12,
+  },
+] as const;
+
+type EstKey = (typeof ESTABLISHMENTS)[number]["value"];
+
 function Overtime() {
-  const [rate, setRate] = useState(100);
+  const [salary, setSalary] = useState(8000);
+  const [estKey, setEstKey] = useState<EstKey>("industrial");
   const [dayHours, setDayHours] = useState(2);
   const [nightHours, setNightHours] = useState(1);
+
+  const est = ESTABLISHMENTS.find((e) => e.value === estKey) ?? ESTABLISHMENTS[0];
+
+  // قيمة الساعة = الأجر الشهري ÷ 26 يوم عمل ÷ 8 ساعات
+  const rate = salary / 26 / 8;
+
+  const totalExtra = dayHours + nightHours;
+  const dayCapHit = est.dailyOvertimeCap !== null && dayHours > est.dailyOvertimeCap;
+  const weekCapHit = est.weeklyOvertimeCap !== null && totalExtra > est.weeklyOvertimeCap;
 
   const dayComp = dayHours * rate * 1.35;
   const nightComp = nightHours * rate * 1.7;
@@ -503,10 +731,31 @@ function Overtime() {
             <Coins className="h-6 w-6" style={{ color: C.teal }} />
             <h3 className="font-display text-xl font-bold">حاسبة الأوفر تايم — جرّب بأرقامك</h3>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div>
-              <Label className="mb-2 block font-semibold">قيمة الساعة الأساسية: <span className="font-mono-ar">{rate} جنيه</span></Label>
-              <Slider value={[rate]} min={25} max={500} step={5} onValueChange={(v) => setRate(v[0])} style={{ accentColor: C.teal }} />
+              <Label className="mb-2 block font-semibold">الأجر الشهري (جنيه): <span className="font-mono-ar">{salary} جنيه</span></Label>
+              <Slider value={[salary]} min={2000} max={40000} step={250} onValueChange={(v) => setSalary(v[0])} style={{ accentColor: C.teal }} />
+            </div>
+            <div>
+              <Label className="mb-2 block font-semibold">نوع المنشأة / طبيعة العمل</Label>
+              <Select value={estKey} onValueChange={(v) => setEstKey(v as EstKey)}>
+                <SelectTrigger className="w-full bg-white text-right">
+                  <SelectValue placeholder="اختر نوع المنشأة" />
+                </SelectTrigger>
+                <SelectContent dir="rtl">
+                  {ESTABLISHMENTS.map((e) => (
+                    <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-2 flex items-start gap-2 rounded-xl p-3 text-xs leading-relaxed" style={{ background: est.color + "18", color: est.color }}>
+                <FileCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                {est.note}
+              </p>
+              <p className="mt-2 rounded-xl border bg-white p-3 text-center text-sm" style={{ borderColor: C.amber, background: C.amberLight }}>
+                قيمة الساعة = {salary} ÷ 26 يوم ÷ 8 ساعات ={" "}
+                <span className="font-mono-ar font-black" style={{ color: est.color }}>{rate.toFixed(2)} جنيه/ساعة</span>
+              </p>
             </div>
             <div>
               <Label className="mb-2 block font-semibold">ساعات نهارية (بعد نهاية الورد + قبل 6م): <span className="font-mono-ar">{dayHours} ساعة</span></Label>
@@ -517,15 +766,29 @@ function Overtime() {
               <Slider value={[nightHours]} min={0} max={8} step={0.5} onValueChange={(v) => setNightHours(v[0])} style={{ accentColor: C.navy }} />
             </div>
 
+            {/* تنبيهات حدود الإضافي */}
+            {(dayCapHit || weekCapHit) && (
+              <div className="flex items-start gap-2 rounded-xl border-2 p-3 text-sm font-semibold leading-relaxed" style={{ borderColor: C.amber, background: C.amberLight, color: C.amber }}>
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+                <span>
+                  {dayCapHit &&
+                    `في الأعمال التجهيزية والحراسة والنظافة (قرار 292/2025) الحد الأقصى للإضافي ساعتان في اليوم الواحد — وأنت أدخلت ${dayHours} ساعة نهارية.`}
+                  {" "}
+                  {weekCapHit &&
+                    `مجموع ساعاتك الإضافية (${totalExtra.toFixed(1)}) تجاوز الحد الأسبوعي ${est.weeklyOvertimeCap} ساعة المقررة بقرار 292/2025.`}
+                </span>
+              </div>
+            )}
+
             {/* تفصيل الحساب */}
             <div className="space-y-2 rounded-2xl border p-4 text-sm" style={{ background: C.cream }}>
               <p className="font-semibold text-muted-foreground">الحساب خطوة بخطوة:</p>
               <p>
-                <span className="font-mono-ar">{dayHours}</span> ساعة نهارية × {rate} جنيه × 1.35 ={" "}
+                <span className="font-mono-ar">{dayHours}</span> ساعة نهارية × {rate.toFixed(2)} جنيه × 1.35 ={" "}
                 <span className="font-mono-ar font-bold" style={{ color: C.teal }}>{dayComp.toFixed(2)}</span> جنيه
               </p>
               <p>
-                <span className="font-mono-ar">{nightHours}</span> ساعة ليلية × {rate} جنيه × 1.70 ={" "}
+                <span className="font-mono-ar">{nightHours}</span> ساعة ليلية × {rate.toFixed(2)} جنيه × 1.70 ={" "}
                 <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{nightComp.toFixed(2)}</span> جنيه
               </p>
             </div>
@@ -580,56 +843,97 @@ function Overtime() {
 function SickLeave() {
   const [wage, setWage] = useState(8000);
   const [months, setMonths] = useState(1);
+  const [kind, setKind] = useState<"industrial" | "commercial">("industrial");
 
   const detail = useMemo(() => {
     let total = 0;
     const steps: { label: string; amount: number; pct: string }[] = [];
-    if (months >= 1) {
-      total += wage;
-      steps.push({ label: "الشهر الأول", amount: wage, pct: "100%" });
-    }
-    const rest = Math.min(months - 1, 8);
-    if (rest > 0) {
-      const sub = rest * wage * 0.75;
-      total += sub;
-      steps.push({ label: `الشهور 2 حتى ${Math.min(9, months)}`, amount: sub, pct: "75%" });
-    }
-    if (months > 9) {
-      steps.push({ label: "بعد الشهر التاسع", amount: 0, pct: "بدون أجر — لجنة طبية" });
+    if (kind === "industrial") {
+      // صناعية: الشهر الأول 100%، ثم 8 شهور بـ75%، بعدها بدون أجر + لجنة طبية
+      if (months >= 1) {
+        total += wage;
+        steps.push({ label: "الشهر الأول", amount: wage, pct: "100%" });
+      }
+      const rest = Math.min(months - 1, 8);
+      if (rest > 0) {
+        const sub = rest * wage * 0.75;
+        total += sub;
+        steps.push({ label: `الشهور 2 حتى ${Math.min(9, months)}`, amount: sub, pct: "75%" });
+      }
+      if (months > 9) {
+        steps.push({ label: "بعد الشهر التاسع", amount: 0, pct: "بدون أجر — لجنة طبية" });
+      }
+    } else {
+      // تجارية: أول 3 شهور 75%، ثاني 3 شهور 85%
+      const first = Math.min(months, 3);
+      const second = Math.min(Math.max(months - 3, 0), 3);
+      if (first > 0) {
+        const sub = first * wage * 0.75;
+        total += sub;
+        steps.push({ label: `أول ${first} ${first === 1 ? "شهر" : "شهور"}`, amount: sub, pct: "75%" });
+      }
+      if (second > 0) {
+        const sub = second * wage * 0.85;
+        total += sub;
+        steps.push({ label: `الشهور 4 حتى ${Math.min(6, months)}`, amount: sub, pct: "85%" });
+      }
+      if (months > 6) {
+        steps.push({ label: "بعد الشهر السادس", amount: 0, pct: "ينتهي الحق في التعويض" });
+      }
     }
     return { total, steps };
-  }, [wage, months]);
+  }, [wage, months, kind]);
+
+  const kindColor = kind === "industrial" ? C.teal : C.navy;
+  const kindName = kind === "industrial" ? "منشأة صناعية" : "منشأة تجارية";
 
   return (
-    <Section num="04" label="رابعاً · الإجازة المرضية" title="الإجازة المرضية في المنشأة الصناعية — بتتقسم تلات مراحل">
+    <Section num="04" label="رابعاً · الإجازة المرضية" title="الإجازة المرضية — حسب نوع المنشأة">
       <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
         {/* الشريط الزمني */}
         <FadeUp className="space-y-6">
           <p className="leading-relaxed text-foreground/85">
-            لو موظف في منشأة صناعية أتصاب بمرض وخلّى إجازة مرضية، التأمينات الاجتماعية
-            بتصرف له تعويض عن أجره بنسب مختلفة حسب مدة الإجازة — وأول شهر دايماً بأجر
-            كامل.
+            لو موظف أتصاب بمرض وخلّى إجازة مرضية، التأمينات الاجتماعية بتصرف له تعويض
+            عن أجره بنسب مختلفة حسب مدة الإجازة — ونسب التعويض بتختلف بين المنشآت
+            الصناعية والتجارية.
           </p>
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: C.teal, background: C.tealLight }}>
-              <div className="font-mono-ar mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white" style={{ background: C.teal }}>1</div>
-              <p className="font-display font-bold">الشهر الأول</p>
-              <p className="font-mono-ar mt-1 text-3xl font-black" style={{ color: C.teal }}>100%</p>
-              <p className="mt-1 text-xs text-muted-foreground">أجر كامل</p>
+          {kind === "industrial" ? (
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: C.teal, background: C.tealLight }}>
+                <div className="font-mono-ar mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white" style={{ background: C.teal }}>1</div>
+                <p className="font-display font-bold">الشهر الأول</p>
+                <p className="font-mono-ar mt-1 text-3xl font-black" style={{ color: C.teal }}>100%</p>
+                <p className="mt-1 text-xs text-muted-foreground">أجر كامل</p>
+              </div>
+              <div className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
+                <div className="font-mono-ar mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white" style={{ background: C.navy }}>2</div>
+                <p className="font-display font-bold">الشهور 2 – 9</p>
+                <p className="font-mono-ar mt-1 text-3xl font-black" style={{ color: C.navy }}>75%</p>
+                <p className="mt-1 text-xs text-muted-foreground">بحد أقصى 8 شهور</p>
+              </div>
+              <div className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: C.amber, background: C.amberLight }}>
+                <div className="font-mono-ar mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white" style={{ background: C.amber }}>3</div>
+                <p className="font-display font-bold">بعد ذلك</p>
+                <p className="font-display mt-1 text-lg font-bold" style={{ color: C.amber }}>بدون أجر</p>
+                <p className="mt-1 text-xs text-muted-foreground">ثم قرار اللجنة الطبية</p>
+              </div>
             </div>
-            <div className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
-              <div className="font-mono-ar mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white" style={{ background: C.navy }}>2</div>
-              <p className="font-display font-bold">الشهور 2 – 9</p>
-              <p className="font-mono-ar mt-1 text-3xl font-black" style={{ color: C.navy }}>75%</p>
-              <p className="mt-1 text-xs text-muted-foreground">بحد أقصى 8 شهور</p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
+                <div className="font-mono-ar mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white" style={{ background: C.navy }}>1</div>
+                <p className="font-display font-bold">أول 3 شهور</p>
+                <p className="font-mono-ar mt-1 text-3xl font-black" style={{ color: C.navy }}>75%</p>
+                <p className="mt-1 text-xs text-muted-foreground">من الأجر</p>
+              </div>
+              <div className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: C.amber, background: C.amberLight }}>
+                <div className="font-mono-ar mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white" style={{ background: C.amber }}>2</div>
+                <p className="font-display font-bold">الشهور 4 – 6</p>
+                <p className="font-mono-ar mt-1 text-3xl font-black" style={{ color: C.amber }}>85%</p>
+                <p className="mt-1 text-xs text-muted-foreground">بعد كده ينتهي التعويض</p>
+              </div>
             </div>
-            <div className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: C.amber, background: C.amberLight }}>
-              <div className="font-mono-ar mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full text-lg font-black text-white" style={{ background: C.amber }}>3</div>
-              <p className="font-display font-bold">بعد ذلك</p>
-              <p className="font-display mt-1 text-lg font-bold" style={{ color: C.amber }}>بدون أجر</p>
-              <p className="mt-1 text-xs text-muted-foreground">ثم قرار اللجنة الطبية</p>
-            </div>
-          </div>
+          )}
           <div className="overflow-hidden rounded-3xl shadow-md">
             <img src="/manus-storage/illust_sick_leave_afd77f1c.png" alt="توضيح الإجازة المرضية" className="h-48 w-full object-cover md:h-56" />
           </div>
@@ -669,6 +973,18 @@ function SickLeave() {
                 <Slider value={[wage]} min={2000} max={20000} step={500} onValueChange={(v) => setWage(v[0])} style={{ accentColor: C.teal }} />
               </div>
               <div>
+                <Label className="mb-2 block font-semibold">نوع المنشأة</Label>
+                <Select value={kind} onValueChange={(v) => setKind(v as "industrial" | "commercial")}>
+                  <SelectTrigger className="w-full bg-white text-right">
+                    <SelectValue placeholder="اختر نوع المنشأة" />
+                  </SelectTrigger>
+                  <SelectContent dir="rtl">
+                    <SelectItem value="industrial">منشأة صناعية</SelectItem>
+                    <SelectItem value="commercial">منشأة غير صناعية (تجارية)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label className="mb-2 block font-semibold">مدة الإجازة المرضية: <span className="font-mono-ar">{months} شهر</span></Label>
                 <Slider value={[months]} min={1} max={12} step={1} onValueChange={(v) => setMonths(v[0])} style={{ accentColor: C.teal }} />
               </div>
@@ -680,7 +996,13 @@ function SickLeave() {
                   </p>
                 ))}
               </div>
-              <div className="flex items-center justify-between rounded-2xl px-5 py-4 text-white shadow-md" style={{ background: C.teal }}>
+              <p className="text-sm text-muted-foreground">
+                النظام المطبق: <strong style={{ color: kindColor }}>{kindName}</strong> —
+                {kind === "industrial"
+                  ? " الشهر الأول 100% ثم 75% لحد 9 شهور"
+                  : " أول 3 شهور 75% ثم 85% لحد 6 شهور"}
+              </p>
+              <div className="flex items-center justify-between rounded-2xl px-5 py-4 text-white shadow-md" style={{ background: kindColor }}>
                 <span className="font-display font-bold">إجمالي التعويض:</span>
                 <span className="font-mono-ar text-2xl font-black">
                   <AnimatedNumber value={detail.total} decimals={0} /> جنيه
@@ -792,6 +1114,11 @@ export default function Home() {
       <div id="hours" style={{ background: "#fff" }}>
         <div className="container">
           <Hours />
+        </div>
+      </div>
+      <div id="decisions" style={{ background: "#fff" }}>
+        <div className="container">
+          <Decisions />
         </div>
       </div>
       <div id="overtime" className="container">
