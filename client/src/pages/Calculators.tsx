@@ -57,9 +57,9 @@ const ESTABLISHMENTS = [
     value: "industrial",
     label: "منشأة صناعية",
     color: C.teal,
-    note: "قرار 289/2025: 8 ساعات فعلية كحد أقصى يومياً، 48 أسبوعياً",
-    maxDaily: 8,
-    maxWeekly: 48,
+    note: "قرار 289/2025: 7 ساعات فعلية كحد أقصى يومياً، 42 فعلي أسبوعياً (7 فعلي + ساعة راحة = 8 ساعات تواجُد يومياً)",
+    maxDaily: 7,
+    maxWeekly: 42,
     dailyOvertimeCap: null as number | null,
     weeklyOvertimeCap: null as number | null,
   },
@@ -67,7 +67,7 @@ const ESTABLISHMENTS = [
     value: "commercial",
     label: "منشأة غير صناعية",
     color: C.navy,
-    note: "8 ساعات فعلية + ساعة راحة = 9 ساعات تواجُد يومياً",
+    note: "8 ساعات فعلية كحد أقصى يومياً، 48 فعلي أسبوعياً (8 فعلي + ساعة راحة = 9 ساعات تواجُد يومياً)",
     maxDaily: 8,
     maxWeekly: 48,
     dailyOvertimeCap: null,
@@ -104,7 +104,7 @@ function OvertimeCalculator() {
   const [salaryInput, setSalaryInput] = useState("8000");
   const salary = Math.max(0, parseInt(salaryInput) || 0);
   const [estKey, setEstKey] = useState<EstKey>("industrial");
-  const [shiftHours, setShiftHours] = useState(8);
+  const [shiftHours, setShiftHours] = useState(7);
   const [workDays, setWorkDays] = useState(30); // الشهر القانوني = 30 يومًا (قابل للتعديل)
   const [restDays, setRestDays] = useState(0);
   const [holidayDays, setHolidayDays] = useState(0);
@@ -114,10 +114,11 @@ function OvertimeCalculator() {
   const est = ESTABLISHMENTS.find((e) => e.value === estKey) ?? ESTABLISHMENTS[0];
   const rate = salary / 30 / 8;
 
-  // الحساب التلقائي: ساعات الشهر النظامية = 48 ساعة فعلي × عدد الأسابيع في أيام العمل
-  // (الأسبوع = 6 أيام عمل → 8 ساعات فعلي يومياً = 48 فعلي أسبوعياً)
+  // الحساب التلقائي: ساعات الشهر النظامية = الحد الأسبوعي الفعلي × عدد الأسابيع في أيام العمل
+  // (الأسبوع = 6 أيام عمل × maxDaily فعلي = legalWeekly فعلي أسبوعياً)
   const weeksWorked = workDays / 6;
-  const legalActualHours = 48 * weeksWorked;
+  const legalWeekly = est.maxWeekly ?? 48;
+  const legalActualHours = legalWeekly * weeksWorked;
   const workedHours = workDays * shiftHours;
   const overtimeHours = Math.max(0, workedHours - legalActualHours);
 
@@ -125,7 +126,7 @@ function OvertimeCalculator() {
   const restHours = restDays * shiftHours;
   const holidayHours = holidayDays * shiftHours;
 
-  const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - 8 > est.dailyOvertimeCap;
+  const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > est.dailyOvertimeCap;
   const weekCapHit = est.weeklyOvertimeCap !== null && overtimeHours + dayOvertimeHours + nightHours > (est.weeklyOvertimeCap ?? Infinity);
   const restDayWarn = restDays > weeksWorked;
 
@@ -197,7 +198,7 @@ function OvertimeCalculator() {
             className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
             style={{ borderColor: C.teal + "66" }}
           />
-          <p className="mt-1 text-xs text-muted-foreground">الحد القانوني 8 ساعات فعلية يوميًا — أي زيادة عن الحد يوميًا تُحسب إضافي تلقائيًا</p>
+          <p className="mt-1 text-xs text-muted-foreground">الحد القانوني {est.maxDaily} ساعات فعلية يوميًا — أي زيادة عن الحد يوميًا تُحسب إضافي تلقائيًا</p>
         </div>
 
         <p className="font-display font-bold" style={{ color: C.navy }}>أيام الراحة والإجازات اللي اشتغلتها (الشهر القانوني = {workDays} يوم)؟</p>
@@ -300,7 +301,7 @@ function OvertimeCalculator() {
           <span className="mx-2 text-muted-foreground">=</span>
           <span className="font-mono-ar">{workDays} يوم × {shiftHours} ساعة = {workedHours.toFixed(0)} ساعة فعلي</span>
           <span className="mx-2 text-muted-foreground">−</span>
-          <span className="font-mono-ar">الحد القانوني {legalActualHours.toFixed(0)} ساعة (48 فعلي × {weeksWorked.toFixed(1)} أسبوع)</span>
+          <span className="font-mono-ar">الحد القانوني {legalActualHours.toFixed(0)} ساعة ({legalWeekly} فعلي × {weeksWorked.toFixed(1)} أسبوع)</span>
         </div>
 
         {(dayCapHit || weekCapHit || restDayWarn) && (
@@ -308,7 +309,7 @@ function OvertimeCalculator() {
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
             <span>
               {dayCapHit &&
-                `في الأعمال التجهيزية والحراسة والنظافة (قرار 292/2025) الحد الأقصى للإضافي ساعتان في اليوم — وردك (${shiftHours} ساعة) يتجاوز الحد 8+2.`}
+                `في الأعمال التجهيزية والحراسة والنظافة (قرار 292/2025) الحد الأقصى للإضافي ساعتان في اليوم — وردك (${shiftHours} ساعة) يتجاوز الحد ${est.maxDaily}+2.`}
               {" "}
               {weekCapHit &&
                 `مجموع الساعات الإضافية (${(overtimeHours + dayOvertimeHours + nightHours).toFixed(1)}) تجاوز الحد الأسبوعي ${est.weeklyOvertimeCap} ساعة بقرار 292/2025.`}
