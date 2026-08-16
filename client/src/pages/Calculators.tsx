@@ -124,7 +124,7 @@ function OvertimeCalculator() {
         </div>
         <div>
           <h3 className="font-display text-2xl font-bold">حاسبة العمل الإضافي (الأوفر تايم)</h3>
-          <p className="text-sm text-muted-foreground">معاملات: النهار ×1.35 — الليل ×1.70 (الفاصل الساعة 6م)</p>
+          <p className="text-sm text-muted-foreground">معاملات: الساعات النهارية ×1.35 — الساعات الليلية ×1.70</p>
         </div>
       </div>
       <div className="space-y-5">
@@ -153,13 +153,41 @@ function OvertimeCalculator() {
             <span className="font-mono-ar font-black" style={{ color: est.color }}>{rate.toFixed(2)} جنيه/ساعة</span>
           </p>
         </div>
-        <div>
-          <Label className="mb-2 block font-semibold">ساعات نهارية (بعد نهاية الورد وقبل 6م): <span className="font-mono-ar">{dayHours} ساعة</span></Label>
-          <Slider value={[dayHours]} min={0} max={8} step={0.5} onValueChange={(v) => setDayHours(v[0])} style={{ accentColor: C.teal }} />
-        </div>
-        <div>
-          <Label className="mb-2 block font-semibold">ساعات ليلية (بعد 6م): <span className="font-mono-ar">{nightHours} ساعة</span></Label>
-          <Slider value={[nightHours]} min={0} max={8} step={0.5} onValueChange={(v) => setNightHours(v[0])} style={{ accentColor: C.navy }} />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <Label className="mb-2 block font-semibold">الساعات النهارية (عدد الساعات):</Label>
+            <input
+              type="number"
+              min={0}
+              max={12}
+              step={0.5}
+              value={dayHours}
+              onChange={(e) => {
+                const n = parseFloat(e.target.value);
+                setDayHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 12));
+              }}
+              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
+              style={{ borderColor: C.teal + "66" }}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">الساعات الإضافية اللي شغلتها في النهار بعد نهاية وردك</p>
+          </div>
+          <div>
+            <Label className="mb-2 block font-semibold">الساعات الليلية (عدد الساعات):</Label>
+            <input
+              type="number"
+              min={0}
+              max={12}
+              step={0.5}
+              value={nightHours}
+              onChange={(e) => {
+                const n = parseFloat(e.target.value);
+                setNightHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 12));
+              }}
+              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.35_0.05_250)]"
+              style={{ borderColor: C.navy + "66" }}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">الساعات الإضافية اللي شغلتها في الفترة الليلية</p>
+          </div>
         </div>
 
         {(dayCapHit || weekCapHit) && (
@@ -207,9 +235,10 @@ type SickLaw = "new" | "old";
 
 function SickLeaveCalculator() {
   const [wage, setWage] = useState(8000);
-  const [months, setMonths] = useState(1);
+  const [days, setDays] = useState(30);
   const [kind, setKind] = useState<SickKind>("industrial");
   const [law, setLaw] = useState<SickLaw>("new");
+  const months = days / 30;
 
   const detail = useMemo(() => {
     let total = 0;
@@ -218,50 +247,50 @@ function SickLeaveCalculator() {
       if (law === "new") {
         // م 131 قانون العمل 14/2025 (ساري من 1/9/2025): كل 3 سنوات خدمة
         // 3 شهور بأجر كامل + 6 شهور بـ 85% + 3 شهور بـ 75% (شريطة تقرير الجهة الطبية باحتمال الشفاء)
-        const a = Math.min(months, 3);
-        const b = Math.min(Math.max(months - 3, 0), 6);
-        const c = Math.min(Math.max(months - 9, 0), 3);
+        const a = Math.min(days / 30, 3);
+        const b = Math.min(Math.max(days / 30 - 3, 0), 6);
+        const c = Math.min(Math.max(days / 30 - 9, 0), 3);
         if (a > 0) { const sub = a * wage; total += sub; steps.push({ label: `الشهور 1 – 3 (بأجر كامل)`, amount: sub, pct: "100%" }); }
         if (b > 0) { const sub = b * wage * 0.85; total += sub; steps.push({ label: `الشهور 4 – 9 (بحد أقصى 6 شهور)`, amount: sub, pct: "85%" }); }
         if (c > 0) { const sub = c * wage * 0.75; total += sub; steps.push({ label: `الشهور 10 – 12 (بحد أقصى 3 شهور)`, amount: sub, pct: "75%" }); }
       } else {
         // الدورة القديمة (م 50 قانون 12/2003 + ق 21/1958): كل 3 سنوات خدمة
         // شهر بأجر كامل + 8 شهور بـ 75% + 3 شهور بدون أجر (شريطة تقرير الجهة الطبية باحتمال الشفاء)
-        if (months >= 1) {
+        const m = days / 30;
+        if (m >= 1) {
           total += wage;
           steps.push({ label: "الشهر الأول — بأجر كامل", amount: wage, pct: "100%" });
         }
-        const rest = Math.min(months - 1, 8);
+        const rest = Math.min(m - 1, 8);
         if (rest > 0) {
           const sub = rest * wage * 0.75;
           total += sub;
-          steps.push({ label: `الشهور 2 – ${Math.min(9, months)} (بحد أقصى 8 شهور)`, amount: sub, pct: "75%" });
+          steps.push({ label: `الشهور 2 – ${Math.min(9, Math.ceil(m))} (بحد أقصى 8 شهور)`, amount: sub, pct: "75%" });
         }
-        if (months > 9) {
-          steps.push({ label: `الشهور 10 – ${Math.min(12, months)} (دورة 3 سنوات خدمة)`, amount: 0, pct: "بدون أجر — يشترط تقرير الجهة الطبية باحتمال الشفاء" });
+        if (m > 9) {
+          steps.push({ label: `الشهور 10 – ${Math.min(12, Math.ceil(m))} (دورة 3 سنوات خدمة)`, amount: 0, pct: "بدون أجر — يشترط تقرير الجهة الطبية باحتمال الشفاء" });
         }
       }
     } else {
       // القاعدة العامة (م 76 ق 148/2019 للتأمينات): 90 يوم بـ 75% ثم 85% حتى 180 يوم في السنة الميلادية
-      const firstDays = Math.min(months * 30, 90);
-      const firstMonths = firstDays / 30;
-      const secondDays = Math.min(Math.max(months * 30 - 90, 0), 90);
+      const firstDays = Math.min(days, 90);
+      const secondDays = Math.min(Math.max(days - 90, 0), 90);
       if (firstDays > 0) {
         const sub = (firstDays / 30) * wage * 0.75;
         total += sub;
-        steps.push({ label: `أول 90 يوم (${firstMonths.toFixed(1)} شهر)`, amount: sub, pct: "75%" });
+        steps.push({ label: `أول ${firstDays} يوم`, amount: sub, pct: "75%" });
       }
       if (secondDays > 0) {
         const sub = (secondDays / 30) * wage * 0.85;
         total += sub;
-        steps.push({ label: `اليوم 91 حتى 180`, amount: sub, pct: "85%" });
+        steps.push({ label: `اليوم 91 حتى ${90 + secondDays}`, amount: sub, pct: "85%" });
       }
-      if (months * 30 > 180) {
+      if (days > 180) {
         steps.push({ label: "بعد اليوم 180 في السنة الميلادية", amount: 0, pct: "ينتهي الحق في التعويض" });
       }
     }
     return { total, steps };
-  }, [wage, months, kind, law]);
+  }, [wage, days, kind, law]);
 
   const kindColor = kind === "industrial" ? C.teal : C.navy;
   const kindName = kind === "industrial" ? "منشأة صناعية" : "منشأة تجارية";
@@ -295,8 +324,21 @@ function SickLeaveCalculator() {
           </Select>
         </div>
         <div>
-          <Label className="mb-2 block font-semibold">مدة الإجازة المرضية: <span className="font-mono-ar">{months} شهر</span></Label>
-          <Slider value={[months]} min={1} max={12} step={1} onValueChange={(v) => setMonths(v[0])} style={{ accentColor: C.teal }} />
+          <Label className="mb-2 block font-semibold">مدة الإجازة المرضية (يوم):</Label>
+          <input
+            type="number"
+            min={1}
+            max={365}
+            step={1}
+            value={days}
+            onChange={(e) => {
+              const n = parseInt(e.target.value);
+              setDays(isNaN(n) || n < 1 ? 1 : Math.min(n, 365));
+            }}
+            className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
+            style={{ borderColor: C.teal + "66" }}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">يعادل تقريبًا <span className="font-mono-ar font-bold">{months.toFixed(1)} شهر</span> — (الشهر = 30 يوم)</p>
         </div>
         {kind === "industrial" && (
           <div>
