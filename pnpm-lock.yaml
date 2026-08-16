@@ -2,6 +2,8 @@ lockfileVersion: '9.0'
 
 settings:
   autoInstallPeers: true
+  overrides:
+    'tailwindcss>nanoid': 3.3.7
   excludeLinksFromLockfile: false
 
 importers:
