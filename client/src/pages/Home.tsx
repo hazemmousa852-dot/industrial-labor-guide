@@ -455,6 +455,31 @@ function Hours() {
               );
             })}
           </div>
+
+      {/* شرح يوم الراحة الأسبوعية — القاعدة الجديدة */}
+      <div className="mt-6 grid gap-4 rounded-2xl border-2 bg-white p-6" style={{ borderColor: C.navy }}>
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="h-5 w-5 shrink-0" style={{ color: C.navy }} />
+          <h3 className="font-display text-lg font-bold">
+            لو اشتغل يوم راحته الأسبوعية: أجر يوم كامل + راحة تعويضية في الأسبوع اللي وراه
+          </h3>
+        </div>
+        <p className="text-sm leading-relaxed text-foreground/85">
+          المادة 121 من قانون العمل 14/2025 بتقول إن اشتغال العامل في يوم الراحة الأسبوعية أو في إجازة رسمية — بموافقة صاحب العمل — مش أوفر تايم بالساعات،
+          لكنه بيعوض بـ<strong> أجر يوم كامل زيادة</strong> عن كل يوم اشتغله،<strong> ويأخد يوم راحة تعويضي خلال الأسبوع اللي وراه</strong> بدل اليوم اللي اشتغله.
+        </p>
+        <div className="grid gap-3 rounded-2xl p-4 text-sm" style={{ background: C.navyLight }}>
+          <p className="font-display font-bold" style={{ color: C.navy }}>
+            مثال عملي — العامل براتب 8000 جنيه في منشأة صناعية اشتغل يوم راحته:
+          </p>
+          <p>
+            قيمة اليوم = 8000 ÷ 30 = <span className="font-mono-ar font-bold">266.67 جنيه</span> → ياخد <span className="font-mono-ar font-bold">266.67 جنيه زيادة</span> عن اليوم ده + يوم راحة كامل في الأسبوع التالي.
+          </p>
+          <p className="text-muted-foreground">
+            ملاحظة: ساعات شغله العادية في بقية الأيام مش بتتحسب عليه إضافي — التعويض هو الأجر اليومي كامل مش الأجر بالساعة.
+          </p>
+        </div>
+      </div>
     </Section>
   );
 }
