@@ -415,7 +415,6 @@ function Hours() {
                 segIndex++;
               }
               return (
-                <>
                 <div key={r.type} className="space-y-3">
                   <p className="font-display text-lg font-bold" style={{ color: r.color }}>
                     {r.type}: إجمالي التواجُد <span className="font-mono-ar">{r.total}</span> ساعات
@@ -453,7 +452,6 @@ function Hours() {
                     {r.type === "صناعية" ? "5 شغل + 1 راحة + 2 شغل = 8 ساعات تواجُد" : "5 شغل + 1 راحة + 3 شغل = 9 ساعات تواجُد"}
                   </p>
                 </div>
-                </>
               );
             })}
           </div>
