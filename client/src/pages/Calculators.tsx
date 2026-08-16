@@ -107,7 +107,7 @@ function OvertimeCalculator() {
   const [nightHours, setNightHours] = useState(1);
 
   const est = ESTABLISHMENTS.find((e) => e.value === estKey) ?? ESTABLISHMENTS[0];
-  const rate = salary / 26 / 8;
+  const rate = salary / 30 / 8;
   const totalExtra = dayHours + nightHours;
   const dayCapHit = est.dailyOvertimeCap !== null && dayHours > est.dailyOvertimeCap;
   const weekCapHit = est.weeklyOvertimeCap !== null && totalExtra > est.weeklyOvertimeCap;
@@ -149,7 +149,8 @@ function OvertimeCalculator() {
             {est.note}
           </p>
           <p className="mt-2 rounded-xl border bg-white p-3 text-center text-sm" style={{ borderColor: C.amber, background: C.amberLight }}>
-            قيمة الساعة = {salary} ÷ 26 يوم ÷ 8 ساعات ={" "}
+                        قيمة الساعة = {salary} ÷ 30 يوم (الشهر القانوني = 30 يوم) ÷ 8 ساعات ={
+" "}
             <span className="font-mono-ar font-black" style={{ color: est.color }}>{rate.toFixed(2)} جنيه/ساعة</span>
           </p>
         </div>
@@ -338,7 +339,7 @@ function SickLeaveCalculator() {
             className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
             style={{ borderColor: C.teal + "66" }}
           />
-          <p className="mt-1 text-xs text-muted-foreground">يعادل تقريبًا <span className="font-mono-ar font-bold">{months.toFixed(1)} شهر</span> — (الشهر = 30 يوم)</p>
+          <p className="mt-1 text-xs text-muted-foreground">يعادل <span className="font-mono-ar font-bold">{months.toFixed(2)} شهر</span> (الشهر في القانون = 30 يومًا ثابتة — أي يوم = 1/30 من الشهر)</p>
         </div>
         {kind === "industrial" && (
           <div>
