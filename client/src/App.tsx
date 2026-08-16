@@ -34,7 +34,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
-          <WouterRouter base={import.meta.env.PROD ? import.meta.env.BASE_URL : "/"}>
+          <WouterRouter base={import.meta.env.PROD ? import.meta.env.BASE_URL.replace(/\/$/, "") : "/"}>
             <Router />
           </WouterRouter>
         </TooltipProvider>
