@@ -715,51 +715,78 @@ function Article131() {
           ))}
         </FadeUp>
 
-        <FadeUp className="overflow-hidden rounded-3xl border-2 bg-white" style={{ borderColor: C.amber }}>
-          <div className="px-6 py-4 text-white" style={{ background: C.amber }}>
-            <p className="font-display text-lg font-bold">ماذا تغيّر عن القانون القديم 12/2003؟ (المادة 50)</p>
+        <FadeUp className="space-y-4">
+          {/* المنشآت الصناعية */}
+          <div className="overflow-hidden rounded-3xl border-2 bg-white" style={{ borderColor: C.teal }}>
+            <div className="px-6 py-4 text-white" style={{ background: C.teal }}>
+              <p className="font-display text-lg font-bold">المنشآت الصناعية (م 131 ق 14/2025)</p>
+            </div>
+            <div className="p-6 leading-loose text-foreground/90">
+              <p className="mb-4">
+                للعامل بالمنشآت الصناعية التي يسري عليها قانون تيسير منح تراخيص المنشآت الصناعية (15/2017) إجازة مرضية
+                <strong> كل ثلاث سنوات خدمة</strong> على أساس: <strong>3 شهور بأجر كامل</strong>، ثم <strong>6 شهور بـ85%</strong>،
+                ثم <strong>3 شهور بـ75%</strong> — وذلك إذا قررت الجهة الطبية المختصة احتمال شفائه.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.teal, background: C.tealLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 1 – 3</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.teal }}>100%</p>
+                  <p className="mt-1 text-xs text-muted-foreground">بأجر كامل</p>
+                </div>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 4 – 9</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.navy }}>85%</p>
+                  <p className="mt-1 text-xs text-muted-foreground">بأجر يعادل 85%</p>
+                </div>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.amber, background: C.amberLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 10 – 12</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.amber }}>75%</p>
+                  <p className="mt-1 text-xs text-muted-foreground">بأجر يعادل 75%</p>
+                </div>
+              </div>
+              <ul className="mt-4 space-y-2 text-sm">
+                <li>يُخصم من التزام صاحب العمل ما يسدده نظام التأمين الاجتماعي من تعويض عن الأجر.</li>
+                <li>للعامل الاستفادة من متجمد إجازاته السنوية إلى جانب المرضية، أو تحويل المرضية إلى سنوية إذا كان له رصيد.</li>
+              </ul>
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm">
-              <thead>
-                <tr className="border-b bg-secondary/60">
-                  <th className="px-5 py-3 text-right font-bold text-muted-foreground">المرحلة</th>
-                  <th className="px-5 py-3 text-right font-bold" style={{ color: C.navy }}>القانون القديم 12/2003 (قبل 1/9/2025)</th>
-                  <th className="px-5 py-3 text-right font-bold" style={{ color: C.teal }}>القانون الجديد 14/2025 (م 131)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-b bg-white">
-                  <td className="px-5 py-3 font-semibold">أول 3 شهور</td>
-                  <td className="px-5 py-3">شهر واحد 100%</td>
-                  <td className="px-5 py-3 font-bold" style={{ color: C.teal }}>3 شهور 100%</td>
-                </tr>
-                <tr className="border-b bg-secondary/60">
-                  <td className="px-5 py-3 font-semibold">الشهور 4 – 9</td>
-                  <td className="px-5 py-3">75% (8 شهور إجمالاً)</td>
-                  <td className="px-5 py-3 font-bold" style={{ color: C.teal }}>85% (6 شهور)</td>
-                </tr>
-                <tr className="border-b bg-white">
-                  <td className="px-5 py-3 font-semibold">الشهور 10 – 12</td>
-                  <td className="px-5 py-3">بدون أجر</td>
-                  <td className="px-5 py-3 font-bold" style={{ color: C.teal }}>75%</td>
-                </tr>
-                <tr className="bg-secondary/60">
-                  <td className="px-5 py-3 font-semibold">الدورة</td>
-                  <td className="px-5 py-3">12 شهر كل 3 سنوات خدمة</td>
-                  <td className="px-5 py-3 font-bold" style={{ color: C.teal }}>12 شهر مدفوعة بالكامل كل 3 سنوات خدمة</td>
-                </tr>
-              </tbody>
-            </table>
+
+          {/* المنشآت غير الصناعية */}
+          <div className="overflow-hidden rounded-3xl border-2 bg-white" style={{ borderColor: C.navy }}>
+            <div className="px-6 py-4 text-white" style={{ background: C.navy }}>
+              <p className="font-display text-lg font-bold">المنشآت غير الصناعية (م 76 ق التأمينات 148/2019)</p>
+            </div>
+            <div className="p-6 leading-loose text-foreground/90">
+              <p className="mb-4">
+                للعامل بالمنشآت غير الصناعية (البنوك، المكاتب، الفنادق، المحلات، المدارس...) تعويض مرضي من التأمينات
+                الاجتماعية على أساس: <strong>أول 3 شهور بـ75%</strong> من أجره، ثم <strong>الشهور 4 – 6 بـ85%</strong> —
+                بإجمالي <strong>6 شهور كحد أقصى</strong> خلال الدورة، وذلك بعد قرار الجهة الطبية المختصة بعدم قدرته على العمل.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 1 – 3</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.navy }}>75%</p>
+                  <p className="mt-1 text-xs text-muted-foreground">بأجر يعادل 75%</p>
+                </div>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.teal, background: C.tealLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 4 – 6</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.teal }}>85%</p>
+                  <p className="mt-1 text-xs text-muted-foreground">بأجر يعادل 85%</p>
+                </div>
+              </div>
+              <ul className="mt-4 space-y-2 text-sm">
+                <li>الدورة المرضية: 6 شهور مدفوعة كل ثلاث سنوات خدمة — بعكس الصناعي اللي دورته 12 شهر مدفوعة بالكامل.</li>
+                <li>يُخصم من التزام صاحب العمل ما يسدده نظام التأمين الاجتماعي من تعويض عن الأجر.</li>
+              </ul>
+            </div>
           </div>
         </FadeUp>
 
         <FadeUp className="flex items-start gap-3 rounded-3xl border-2 p-5 text-sm leading-relaxed" style={{ borderColor: C.teal, background: C.tealLight }}>
           <Scale className="mt-0.5 h-6 w-6 shrink-0" style={{ color: C.teal }} />
           <p>
-            <strong>الأثر العملي:</strong> تحت القانون الجديد مش فيه أي مرحلة "بدون أجر" داخل الدورة — الدورة الكاملة (12 شهر)
-            كلها مدفوعة، وأحسن نقطة إن الشهور الثلاثة الأخيرة اللي كانت بدون أجر بقت بـ75%. راجع حاسبة الإجازة المرضية
-            في صفحة الحاسبات وجرب النظامين بالأرقام.
+            <strong>الخلاصة:</strong> الصناعي دورته أطول وأحسن — 12 شهر مدفوعة (100% ثم 85% ثم 75%)، بينما غير الصناعي
+            6 شهور فقط (75% ثم 85%). جرّب النظامين بالأرقام في حاسبة الإجازة المرضية في صفحة الحاسبات.
           </p>
         </FadeUp>
       </div>
