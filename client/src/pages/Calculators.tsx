@@ -120,7 +120,9 @@ function OvertimeCalculator() {
   const [nightHours, setNightHours] = useState(0);
 
   const est = ESTABLISHMENTS.find((e) => e.value === estKey) ?? ESTABLISHMENTS[0];
-  const rate = salary / 30 / 8;
+  // قيمة الساعة حسب المنشأة: الأجر ÷ 30 يوم (قيمة اليوم) ÷ ساعات العمل الفعلية (7 صناعية / 8 غير صناعية)
+  const dayValue = salary / 30;
+  const rate = dayValue / est.maxDaily;
 
   // الحساب التلقائي: ساعات الشهر النظامية = الحد الأسبوعي الفعلي × عدد الأسابيع في أيام العمل
   // (الأسبوع = 6 أيام عمل × maxDaily فعلي = legalWeekly فعلي أسبوعياً)
@@ -146,14 +148,16 @@ function OvertimeCalculator() {
     }
   }, [estKey]);
 
-const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > est.dailyOvertimeCap;
+  // يوم الراحة الأسبوعية: أجر يوم زيادة + يوم راحة تعويضي خلال الأسبوع التالي (م 121 ق 14/2025)
+  const restDayPay = restDays * dayValue; // أجر يوم كامل عن كل يوم راحة اشتغلها
+  const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > est.dailyOvertimeCap;
   const weekCapHit = est.weeklyOvertimeCap !== null && overtimeHours + dayOvertimeHours + nightHours > (est.weeklyOvertimeCap ?? Infinity);
   const restDayWarn = restDays > weeksWorked;
 
   const dayComp = (overtimeHours + dayOvertimeHours) * rate * 1.35;
   const nightComp = nightHours * rate * 1.7;
-  const restComp = restHours * rate * 2;
-  const holidayComp = holidayHours * rate * 2;
+  const restComp = restDayPay; // أجر يوم زيادة عن كل يوم راحة أسبوعية + راحة تعويضية خلال الأسبوع التالي
+  const holidayComp = holidayDays * shiftHours * rate * 2;
   const total = dayComp + nightComp + restComp + holidayComp;
 
   return (
@@ -198,7 +202,7 @@ const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > e
             {est.note}
           </p>
           <p className="mt-2 rounded-xl border bg-white p-3 text-center text-sm" style={{ borderColor: C.amber, background: C.amberLight }}>
-                        قيمة الساعة = {salary} ÷ 30 يوم (الشهر القانوني = 30 يوم) ÷ 8 ساعات ={
+                        قيمة اليوم = {salary} ÷ 30 يوم (الشهر القانوني = 30 يوم) = {dayValue.toFixed(2)} جنيه — قيمة الساعة = ÷ {est.maxDaily} ساعة فعلي ({est.maxDaily === 7 ? "صناعية" : "غير صناعية"}) ={
 " "}
             <span className="font-mono-ar font-black" style={{ color: est.color }}>{rate.toFixed(2)} جنيه/ساعة</span>
           </p>
@@ -238,7 +242,7 @@ const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > e
               className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.35_0.05_250)]"
               style={{ borderColor: C.navy + "66" }}
             />
-            <p className="mt-1 text-xs text-muted-foreground">أيام اشتغلتها بدل يوم الراحة الأسبوعية — تُحسب بضعف الأجر (م 121 ق 14/2025)</p>
+            <p className="mt-1 text-xs text-muted-foreground">أيام اشتغلتها بدل يوم الراحة الأسبوعية — أجر يوم زيادة + يوم راحة تعويضي خلال الأسبوع اللي وراه (م 121 ق 14/2025)</p>
           </div>
           <div>
             <Label className="mb-2 block font-semibold">أيام الإجازات الرسمية:</Label>
@@ -348,10 +352,11 @@ const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > e
               <span className="font-mono-ar font-bold" style={{ color: C.teal }}>{dayComp.toFixed(2)}</span> جنيه
             </p>
           )}
-          {restHours > 0 && (
+          {restDays > 0 && (
             <p>
-              <span className="font-mono-ar">{restDays}</span> يوم راحة أسبوعية × {shiftHours} ساعة × {rate.toFixed(2)} جنيه × 2 (ضعف الأجر) ={" "}
-              <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{restComp.toFixed(2)}</span> جنيه
+              <span className="font-mono-ar">{restDays}</span> يوم راحة أسبوعية اشتغلها × {dayValue.toFixed(2)} جنيه (أجر يوم كامل) ={" "}
+              <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{restComp.toFixed(2)}</span> جنيه{" "}
+              <span className="text-xs text-muted-foreground">+ يوم راحة تعويضي خلال الأسبوع اللي وراه (م 121 ق 14/2025)</span>
             </p>
           )}
           {holidayHours > 0 && (
