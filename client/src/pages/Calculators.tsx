@@ -107,6 +107,7 @@ function OvertimeCalculator() {
   const [workDays, setWorkDays] = useState(26);
   const [restDays, setRestDays] = useState(0);
   const [holidayDays, setHolidayDays] = useState(0);
+  const [dayOvertimeHours, setDayOvertimeHours] = useState(0);
   const [nightHours, setNightHours] = useState(0);
 
   const est = ESTABLISHMENTS.find((e) => e.value === estKey) ?? ESTABLISHMENTS[0];
@@ -124,10 +125,10 @@ function OvertimeCalculator() {
   const holidayHours = holidayDays * shiftHours;
 
   const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - 8 > est.dailyOvertimeCap;
-  const weekCapHit = est.weeklyOvertimeCap !== null && overtimeHours + nightHours > (est.weeklyOvertimeCap ?? Infinity);
+  const weekCapHit = est.weeklyOvertimeCap !== null && overtimeHours + dayOvertimeHours + nightHours > (est.weeklyOvertimeCap ?? Infinity);
   const restDayWarn = restDays > weeksWorked;
 
-  const dayComp = overtimeHours * rate * 1.35;
+  const dayComp = (overtimeHours + dayOvertimeHours) * rate * 1.35;
   const nightComp = nightHours * rate * 1.7;
   const restComp = restHours * rate * 2;
   const holidayComp = holidayHours * rate * 2;
@@ -244,27 +245,47 @@ function OvertimeCalculator() {
           </div>
         </div>
 
-        <div>
-          <Label className="mb-2 block font-semibold">ساعات إضافية ليلية في الشهر كله (اختياري — عدد الساعات):</Label>
-          <input
-            type="number"
-            min={0}
-            max={60}
-            step={0.5}
-            value={nightHours}
-            onChange={(e) => {
-              const n = parseFloat(e.target.value);
-              setNightHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 60));
-            }}
+        <p className="font-display font-bold" style={{ color: C.navy }}>هل شغلت ساعات إضافية يدويًا غير أيام الورد (اختياري)؟</p>
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <Label className="mb-2 block font-semibold">ساعات إضافية نهارية في الشهر كله (×1.35):</Label>
+            <input
+              type="number"
+              min={0}
+              max={60}
+              step={0.5}
+              value={dayOvertimeHours}
+              onChange={(e) => {
+                const n = parseFloat(e.target.value);
+                setDayOvertimeHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 60));
+              }}
+              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
+              style={{ borderColor: C.teal + "66" }}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">ساعات إضافية نهارية شغلتها — تُعوض بزيادة 35% على أجر الساعة (م 126 ق 14/2025)</p>
+          </div>
+          <div>
+            <Label className="mb-2 block font-semibold">ساعات إضافية ليلية في الشهر كله (×1.70):</Label>
+            <input
+              type="number"
+              min={0}
+              max={60}
+              step={0.5}
+              value={nightHours}
+              onChange={(e) => {
+                const n = parseFloat(e.target.value);
+                setNightHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 60));
+              }}
             className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.35_0.05_250)]"
             style={{ borderColor: C.navy + "66" }}
           />
-          <p className="mt-1 text-xs text-muted-foreground">ساعات ليلية إضافية منفصلة عن وردك (إن وُجدت) — إذا كان وردك نفسه ليليًا اتركها صفرًا</p>
+            <p className="mt-1 text-xs text-muted-foreground">ساعات ليلية إضافية منفصلة عن وردك (إن وُجدت) — إذا كان وردك نفسه ليليًا اتركها صفرًا</p>
+          </div>
         </div>
 
         <div className="rounded-xl border bg-white p-3 text-center text-sm" style={{ borderColor: est.color, background: est.color + "14" }}>
           <span className="font-mono-ar font-bold" style={{ color: est.color }}>
-            {overtimeHours.toFixed(1)} ساعة إضافية نهارية تلقائية
+            {overtimeHours.toFixed(1)} ساعة إضافية نهارية تلقائية{dayOvertimeHours > 0 ? ` + ${dayOvertimeHours} ساعة نهارية يدوية` : ""}
           </span>
           <span className="mx-2 text-muted-foreground">=</span>
           <span className="font-mono-ar">{workDays} يوم × {shiftHours} ساعة = {workedHours.toFixed(0)} ساعة فعلي</span>
@@ -280,7 +301,7 @@ function OvertimeCalculator() {
                 `في الأعمال التجهيزية والحراسة والنظافة (قرار 292/2025) الحد الأقصى للإضافي ساعتان في اليوم — وردك (${shiftHours} ساعة) يتجاوز الحد 8+2.`}
               {" "}
               {weekCapHit &&
-                `مجموع الساعات الإضافية (${(overtimeHours + nightHours).toFixed(1)}) تجاوز الحد الأسبوعي ${est.weeklyOvertimeCap} ساعة بقرار 292/2025.`}
+                `مجموع الساعات الإضافية (${(overtimeHours + dayOvertimeHours + nightHours).toFixed(1)}) تجاوز الحد الأسبوعي ${est.weeklyOvertimeCap} ساعة بقرار 292/2025.`}
               {" "}
               {restDayWarn &&
                 `عدد أيام الراحة اللي اشتغلتها (${restDays}) أكثر من أسابيعك الفعلية (${weeksWorked.toFixed(1)}) — راجع المدخلات.`}
@@ -290,9 +311,9 @@ function OvertimeCalculator() {
 
         <div className="space-y-2 rounded-2xl border p-4 text-sm" style={{ background: C.cream }}>
           <p className="font-semibold text-muted-foreground">الحساب خطوة بخطوة:</p>
-          {overtimeHours > 0 && (
+          {(overtimeHours + dayOvertimeHours) > 0 && (
             <p>
-              <span className="font-mono-ar">{overtimeHours.toFixed(1)}</span> ساعة إضافية نهارية تلقائية × {rate.toFixed(2)} جنيه × 1.35 ={" "}
+              {overtimeHours > 0 && <span className="font-mono-ar">{overtimeHours.toFixed(1)}</span>} {overtimeHours > 0 ? "ساعة إضافية نهارية تلقائية" : ""} {overtimeHours > 0 && dayOvertimeHours > 0 ? "+ " : ""} {dayOvertimeHours > 0 && <span className="font-mono-ar">{dayOvertimeHours} ساعة إضافية نهارية يدوية</span>}{dayOvertimeHours > 0 ? "" : ""} × {rate.toFixed(2)} جنيه × 1.35 ={" "}
               <span className="font-mono-ar font-bold" style={{ color: C.teal }}>{dayComp.toFixed(2)}</span> جنيه
             </p>
           )}
@@ -308,9 +329,15 @@ function OvertimeCalculator() {
               <span className="font-mono-ar font-bold" style={{ color: C.amber }}>{holidayComp.toFixed(2)}</span> جنيه
             </p>
           )}
+          {dayOvertimeHours > 0 && (
+            <p>
+              <span className="font-mono-ar">{dayOvertimeHours}</span> ساعة إضافية نهارية يدوية × {rate.toFixed(2)} جنيه × 1.35 ={" "}
+              <span className="font-mono-ar font-bold" style={{ color: C.teal }}>{(dayOvertimeHours * rate * 1.35).toFixed(2)}</span> جنيه
+            </p>
+          )}
           {nightHours > 0 && (
             <p>
-              <span className="font-mono-ar">{nightHours}</span> ساعة ليلية × {rate.toFixed(2)} جنيه × 1.70 ={" "}
+              <span className="font-mono-ar">{nightHours}</span> ساعة إضافية ليلية × {rate.toFixed(2)} جنيه × 1.70 ={" "}
               <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{nightComp.toFixed(2)}</span> جنيه
             </p>
           )}
