@@ -240,7 +240,7 @@ function Hero() {
               </a>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full border-2 bg-white/90 px-8 text-base font-bold backdrop-blur">
-              <a href={`${import.meta.env.BASE_URL}calculators`}>حاسبة الأوفر تايم</a>
+              <a href={`${import.meta.env.BASE_URL}calculators`}>حاسبة الإضافي والمرضى</a>
             </Button>
           </div>
           <div className="mt-12 grid max-w-3xl grid-cols-3 gap-4">
