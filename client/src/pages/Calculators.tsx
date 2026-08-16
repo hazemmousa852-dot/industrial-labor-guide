@@ -203,47 +203,65 @@ function OvertimeCalculator() {
 ================================================================= */
 type SickKind = "industrial" | "commercial";
 
+type SickLaw = "new" | "old";
+
 function SickLeaveCalculator() {
   const [wage, setWage] = useState(8000);
   const [months, setMonths] = useState(1);
   const [kind, setKind] = useState<SickKind>("industrial");
+  const [law, setLaw] = useState<SickLaw>("new");
 
   const detail = useMemo(() => {
     let total = 0;
     const steps: { label: string; amount: number; pct: string }[] = [];
     if (kind === "industrial") {
-      if (months >= 1) {
-        total += wage;
-        steps.push({ label: "الشهر الأول", amount: wage, pct: "100%" });
-      }
-      const rest = Math.min(months - 1, 8);
-      if (rest > 0) {
-        const sub = rest * wage * 0.75;
-        total += sub;
-        steps.push({ label: `الشهور 2 حتى ${Math.min(9, months)}`, amount: sub, pct: "75%" });
-      }
-      if (months > 9) {
-        steps.push({ label: "بعد الشهر التاسع", amount: 0, pct: "بدون أجر — لجنة طبية" });
+      if (law === "new") {
+        // م 131 قانون العمل 14/2025 (ساري من 1/9/2025): كل 3 سنوات خدمة
+        // 3 شهور بأجر كامل + 6 شهور بـ 85% + 3 شهور بـ 75% (شريطة تقرير الجهة الطبية باحتمال الشفاء)
+        const a = Math.min(months, 3);
+        const b = Math.min(Math.max(months - 3, 0), 6);
+        const c = Math.min(Math.max(months - 9, 0), 3);
+        if (a > 0) { const sub = a * wage; total += sub; steps.push({ label: `الشهور 1 – 3 (بأجر كامل)`, amount: sub, pct: "100%" }); }
+        if (b > 0) { const sub = b * wage * 0.85; total += sub; steps.push({ label: `الشهور 4 – 9 (بحد أقصى 6 شهور)`, amount: sub, pct: "85%" }); }
+        if (c > 0) { const sub = c * wage * 0.75; total += sub; steps.push({ label: `الشهور 10 – 12 (بحد أقصى 3 شهور)`, amount: sub, pct: "75%" }); }
+      } else {
+        // الدورة القديمة (م 50 قانون 12/2003 + ق 21/1958): كل 3 سنوات خدمة
+        // شهر بأجر كامل + 8 شهور بـ 75% + 3 شهور بدون أجر (شريطة تقرير الجهة الطبية باحتمال الشفاء)
+        if (months >= 1) {
+          total += wage;
+          steps.push({ label: "الشهر الأول — بأجر كامل", amount: wage, pct: "100%" });
+        }
+        const rest = Math.min(months - 1, 8);
+        if (rest > 0) {
+          const sub = rest * wage * 0.75;
+          total += sub;
+          steps.push({ label: `الشهور 2 – ${Math.min(9, months)} (بحد أقصى 8 شهور)`, amount: sub, pct: "75%" });
+        }
+        if (months > 9) {
+          steps.push({ label: `الشهور 10 – ${Math.min(12, months)} (دورة 3 سنوات خدمة)`, amount: 0, pct: "بدون أجر — يشترط تقرير الجهة الطبية باحتمال الشفاء" });
+        }
       }
     } else {
-      const first = Math.min(months, 3);
-      const second = Math.min(Math.max(months - 3, 0), 3);
-      if (first > 0) {
-        const sub = first * wage * 0.75;
+      // القاعدة العامة (م 76 ق 148/2019 للتأمينات): 90 يوم بـ 75% ثم 85% حتى 180 يوم في السنة الميلادية
+      const firstDays = Math.min(months * 30, 90);
+      const firstMonths = firstDays / 30;
+      const secondDays = Math.min(Math.max(months * 30 - 90, 0), 90);
+      if (firstDays > 0) {
+        const sub = (firstDays / 30) * wage * 0.75;
         total += sub;
-        steps.push({ label: `أول ${first} ${first === 1 ? "شهر" : "شهور"}`, amount: sub, pct: "75%" });
+        steps.push({ label: `أول 90 يوم (${firstMonths.toFixed(1)} شهر)`, amount: sub, pct: "75%" });
       }
-      if (second > 0) {
-        const sub = second * wage * 0.85;
+      if (secondDays > 0) {
+        const sub = (secondDays / 30) * wage * 0.85;
         total += sub;
-        steps.push({ label: `الشهور 4 حتى ${Math.min(6, months)}`, amount: sub, pct: "85%" });
+        steps.push({ label: `اليوم 91 حتى 180`, amount: sub, pct: "85%" });
       }
-      if (months > 6) {
-        steps.push({ label: "بعد الشهر السادس", amount: 0, pct: "ينتهي الحق في التعويض" });
+      if (months * 30 > 180) {
+        steps.push({ label: "بعد اليوم 180 في السنة الميلادية", amount: 0, pct: "ينتهي الحق في التعويض" });
       }
     }
     return { total, steps };
-  }, [wage, months, kind]);
+  }, [wage, months, kind, law]);
 
   const kindColor = kind === "industrial" ? C.teal : C.navy;
   const kindName = kind === "industrial" ? "منشأة صناعية" : "منشأة تجارية";
@@ -271,8 +289,8 @@ function SickLeaveCalculator() {
               <SelectValue placeholder="اختر نوع المنشأة" />
             </SelectTrigger>
             <SelectContent dir="rtl">
-              <SelectItem value="industrial">منشأة صناعية — الشهر الأول 100% ثم 75% لحد 9 شهور</SelectItem>
-              <SelectItem value="commercial">منشأة تجارية — أول 3 شهور 75% ثم 85% لحد 6 شهور</SelectItem>
+              <SelectItem value="industrial">منشأة صناعية (قانون 15/2017 لتراخيص المنشآت الصناعية)</SelectItem>
+              <SelectItem value="commercial">منشأة غير صناعية — 75% أول 90 يوم ثم 85% حتى 180 يوم/سنة</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -280,21 +298,54 @@ function SickLeaveCalculator() {
           <Label className="mb-2 block font-semibold">مدة الإجازة المرضية: <span className="font-mono-ar">{months} شهر</span></Label>
           <Slider value={[months]} min={1} max={12} step={1} onValueChange={(v) => setMonths(v[0])} style={{ accentColor: C.teal }} />
         </div>
+        {kind === "industrial" && (
+          <div>
+            <Label className="mb-2 block font-semibold">النظام المطبق للمنشآت الصناعية</Label>
+            <Select value={law} onValueChange={(v) => setLaw(v as SickLaw)}>
+              <SelectTrigger className="w-full bg-white text-right">
+                <SelectValue placeholder="اختر القانون" />
+              </SelectTrigger>
+              <SelectContent dir="rtl">
+                <SelectItem value="new">القانون 14/2025 (م 131) — ساري من 1/9/2025: 3 شهور بـ 100% ثم 6 شهور بـ 85% ثم 3 شهور بـ 75%</SelectItem>
+                <SelectItem value="old">القانون 12/2003 (م 50) — السابق: شهر 100% + 8 شهور 75% + 3 شهور بدون أجر</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {kind === "industrial" ? (
           <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.teal, background: C.tealLight }}>
-              <p className="font-display text-sm font-bold">الشهر الأول</p>
-              <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.teal }}>100%</p>
-            </div>
-            <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
-              <p className="font-display text-sm font-bold">الشهور 2 – 9</p>
-              <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.navy }}>75%</p>
-            </div>
-            <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.amber, background: C.amberLight }}>
-              <p className="font-display text-sm font-bold">بعد ذلك</p>
-              <p className="font-display mt-1 text-sm font-bold" style={{ color: C.amber }}>بدون أجر</p>
-            </div>
+            {law === "new" ? (
+              <>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.teal, background: C.tealLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 1 – 3</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.teal }}>100%</p>
+                </div>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 4 – 9</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.navy }}>85%</p>
+                </div>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.amber, background: C.amberLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 10 – 12</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.amber }}>75%</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.teal, background: C.tealLight }}>
+                  <p className="font-display text-sm font-bold">الشهر الأول</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.teal }}>100%</p>
+                </div>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
+                  <p className="font-display text-sm font-bold">الشهور 2 – 9</p>
+                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.navy }}>75%</p>
+                </div>
+                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.amber, background: C.amberLight }}>
+                  <p className="font-display text-sm font-bold">بعد ذلك</p>
+                  <p className="font-display mt-1 text-sm font-bold" style={{ color: C.amber }}>بدون أجر</p>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
@@ -317,12 +368,34 @@ function SickLeaveCalculator() {
             </p>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">
-          النظام المطبق: <strong style={{ color: kindColor }}>{kindName}</strong> —
-          {kind === "industrial"
-            ? " الشهر الأول 100% ثم 75% لحد 9 شهور"
-            : " أول 3 شهور 75% ثم 85% لحد 6 شهور"}
-        </p>
+        <div className="space-y-1 rounded-xl border bg-white p-3 text-xs leading-relaxed" style={{ borderColor: C.teal, background: C.tealLight }}>
+          <p className="font-semibold" style={{ color: C.teal }}>الأساس القانوني — النظام المطبق: {kindName}</p>
+          {kind === "industrial" ? (
+            <>
+              {law === "new" ? (
+                <>
+                  <p><strong>المادة 131 من قانون العمل 14/2025 (سارية من 1/9/2025، تُلغي القانون 12/2003):</strong> للعامل بالمنشآت الصناعية التي يسري عليها قانون تيسير منح تراخيص المنشآت الصناعية (15/2017) إجازة مرضية <strong>كل ثلاث سنوات خدمة</strong> على أساس: ثلاثة أشهر بأجر كامل، ثم ستة أشهر بـ 85% من أجره، ثم ثلاثة أشهر بـ 75% من أجره — وذلك إذا قررت الجهة الطبية المختصة احتمال شفائه.</p>
+                  <p><strong>الخصم من التزام صاحب العمل:</strong> يُخصم من أجر صاحب العمل ما يدفعه نظام التأمين الاجتماعي من تعويض عن الأجر.</p>
+                  <p><strong>متجمد الإجازات السنوية:</strong> للعامل أن يستفيد من متجمد إجازاته السنوية إلى جانب المرضية، أو يطلب تحويلها إلى سنوية إذا كان له رصيد.</p>
+                  <p><strong>حماية من الفصل:</strong> لا يجوز إنهاء العقد بسبب المرض إلا بعد استنفاد الإجازات المرضية ومتجمد السنوية (الحكم المقابل للمادة 127 القديمة).</p>
+                </>
+              ) : (
+                <>
+                  <p><strong>المادة 50 من قانون العمل 12/2003 (النظام السابق قبل 1/9/2025):</strong> للعامل بالمنشآت الصناعية (التي يسري عليها القانون 21/1958) إجازة مرضية <strong>كل ثلاث سنوات خدمة</strong> على أساس: شهر بأجر كامل، ثم ثمانية أشهر بـ 75%، ثم ثلاثة أشهر بدون أجر — وذلك إذا قررت الجهة الطبية المختصة احتمال شفائه.</p>
+                  <p><strong>حماية من الفصل (المادة 127):</strong> لا يجوز لصاحب العمل إنهاء العقد بسبب المرض إلا بعد استنفاد الإجازات المرضية + متجمد الإجازات السنوية، مع إخطار العامل قبل 15 يوم من الاستنفاد. فإذا شُفي قبل تمام الإخطار امتنع الإنهاء.</p>
+                </>
+              )}
+              <p><strong>الأمراض المزمنة (م 76 ق 148/2019):</strong> يُصرف تعويض بأجر الاشتراك طوال مدة المرض حتى الشفاء أو ثبوت العجز — استثناءً من حدود الدورة.</p>
+            </>
+          ) : (
+            <>
+              <p><strong>المادة 76 من قانون التأمينات والمعاشات 148/2019:</strong> التعويض عن المرض يعادل 75% من الأجر اليومي المسدد عنه الاشتراكات لمدة 90 يوماً، ويزاد بعدها إلى 85% من الأجر المذكور، بما لا يتجاوز 180 يوماً في السنة الميلادية الواحدة.</p>
+              <p><strong>الحد الأدنى:</strong> لا يقل التعويض في جميع الأحوال عن الحد الأدنى المقرر قانوناً للأجر.</p>
+              <p><strong>الأمراض المزمنة:</strong> يُصرف تعويض بأجر الاشتراك طوال مدة المرض حتى الشفاء أو ثبوت العجز الكامل.</p>
+              <p><strong>متجمد الإجازات:</strong> للعامل أن يستفيد من متجمد إجازاته السنوية إلى جانب المرضية (م 131 ق 14/2025).</p>
+            </>
+          )}
+        </div>
         <div className="flex items-center justify-between rounded-2xl px-5 py-4 text-white shadow-md" style={{ background: kindColor }}>
           <span className="font-display font-bold">إجمالي التعويض:</span>
           <span className="font-mono-ar text-2xl font-black">
@@ -393,7 +466,7 @@ export default function Calculators() {
       <footer className="border-t py-8">
         <div className="container flex flex-col items-center gap-3 text-center text-sm text-muted-foreground">
           <img src="/manus-storage/logo_mark_b4337a50.png" alt="" className="h-9 w-9 object-contain" />
-          <p className="font-mono-ar text-xs">حاسبات تعليمية · بدون أرقام مواد قانونية</p>
+          <p className="font-mono-ar text-xs">حاسبات تعليمية · المراجع: قانون العمل 12/2003 (م 50، م 127) وقانون التأمينات 148/2019 (م 76)</p>
         </div>
       </footer>
     </div>

@@ -191,8 +191,8 @@ function Hero() {
               ["#compare", "الفرق بين المنشآت"],
               ["#hours", "ساعات التواجد"],
               ["#decisions", "قرارات 2025"],
+              ["#law131", "القانون الجديد (م 131)"],
               ["/calculators", "العمل الإضافي"],
-              ["#sick", "الإجازة المرضية"],
             ].map(([href, t]) => (
               <a key={href} href={href} className="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
                 {t}
@@ -292,8 +292,8 @@ function Compare() {
             <div className="flex items-start gap-3 rounded-xl p-3" style={{ background: C.tealLight }}>
               <Syringe className="mt-0.5 h-5 w-5 shrink-0" style={{ color: C.teal }} />
               <p>
-                <strong>الإجازات المرضية:</strong> الشهر الأول أجر كامل 100%، بعدها 8 شهور بـ75%،
-                وآخر 3 شهور بدون أجر وبعدها لجنة طبية.
+                <strong>الإجازات المرضية (القانون 14/2025 — م 131، ساري من 1/9/2025):</strong> كل 3 سنوات خدمة:
+                3 شهور بـ100% + 6 شهور بـ85% + 3 شهور بـ75% (شريطة تقرير الجهة الطبية باحتمال الشفاء).
               </p>
             </div>
           </div>
@@ -625,8 +625,7 @@ function Summary() {
     { item: "ساعات العمل الفعلية", ind: "7 ساعات", com: "8 ساعات" },
     { item: "ساعة الراحة", ind: "1 ساعة", com: "1 ساعة" },
     { item: "إجمالي التواجُد اليومي", ind: "8 ساعات", com: "9 ساعات" },
-    { item: "الشهر الأول مرضي", ind: "100% من الأجر", com: "75% من الأجر" },
-    { item: "المراحل التالية", ind: "8 شهور بـ75% ثم بدون أجر", com: "3 شهور بـ85%" },
+    { item: "المرضية — القانون 14/2025 (م 131)*", ind: "3 شهور 100% + 6 شهور 85% + 3 شهور 75%", com: "75% أول 90 يوم ثم 85% حتى 180 يوم/سنة" },
     { item: "معامل الأوفر تايم", ind: "نهار ×1.35 / ليل ×1.70", com: "نهار ×1.35 / ليل ×1.70" },
   ];
   return (
@@ -660,8 +659,111 @@ function Summary() {
             </tbody>
           </table>
         </FadeUp>
+        <p className="font-mono-ar mt-3 text-xs text-muted-foreground">
+          * الدورة المرضية الكاملة: كل ثلاث سنوات خدمة. النظام السابق قبل 1/9/2025 كان: شهر 100% + 8 شهور بـ75% + 3 شهور بدون أجر (م 50 ق 12/2003).
+        </p>
       </div>
     </section>
+  );
+}
+
+/* =================================================================
+   قسم المادة 131 — القانون 14/2025 (الإجازة المرضية الجديدة)
+================================================================= */
+function Article131() {
+  const items = [
+    {
+      title: "الدورة الجديدة للمنشآت الصناعية (كل 3 سنوات خدمة)",
+      rows: [
+        { period: "الشهور 1 – 3", pct: "100%", label: "بأجر كامل", color: C.teal, bg: C.tealLight },
+        { period: "الشهور 4 – 9", pct: "85%", label: "بأجر يعادل 85%", color: C.navy, bg: C.navyLight },
+        { period: "الشهور 10 – 12", pct: "75%", label: "بأجر يعادل 75%", color: C.amber, bg: C.amberLight },
+      ],
+    },
+  ];
+  return (
+    <Section num="131" label="القانون 14 لسنة 2025" title="المادة 131 — الإجازة المرضية في القانون الجديد">
+      <div className="space-y-6">
+        <FadeUp className="overflow-hidden rounded-3xl border-2 bg-white" style={{ borderColor: C.teal }}>
+          <div className="px-6 py-4 text-white" style={{ background: C.teal }}>
+            <p className="font-display text-lg font-bold">نص المادة 131 (الموجز الرسمي)</p>
+          </div>
+          <div className="p-6 leading-loose text-foreground/90">
+            <p className="mb-4">
+              للعامل الذي يثبت مرضه أو إصابته بما يحول بينه وبين أداء عمله الحق في إجازة مرضية تحددها الجهة الطبية المختصة،
+              ويستحق العامل خلالها تعويضًا عن الأجر تحدد نسبته ومدته وفق أحكام قانون التأمينات الاجتماعية والمعاشات.
+            </p>
+            <p className="mb-4 rounded-2xl border-r-4 p-4" style={{ borderColor: C.teal, background: C.tealLight }}>
+              <strong>المنشآت الصناعية</strong> (التي يسري عليها قانون تيسير منح تراخيص المنشآت الصناعية 15/2017): إجازة مرضية
+              كل ثلاث سنوات خدمة على أساس: <strong>3 شهور بأجر كامل</strong>، ثم <strong>6 شهور بـ85%</strong>، ثم
+              <strong> 3 شهور بـ75%</strong> — وذلك إذا قررت الجهة الطبية المختصة احتمال شفائه.
+            </p>
+            <ul className="space-y-2 text-sm">
+              <li>يُخصم من التزام صاحب العمل ما يسدده نظام التأمين الاجتماعي من تعويض عن الأجر.</li>
+              <li>للعامل الاستفادة من متجمد إجازاته السنوية إلى جانب المرضية، أو تحويل المرضية إلى سنوية إذا كان له رصيد.</li>
+            </ul>
+          </div>
+        </FadeUp>
+
+        <FadeUp className="grid gap-3 sm:grid-cols-3">
+          {items[0].rows.map((r) => (
+            <div key={r.period} className="rounded-2xl border-2 p-5 text-center" style={{ borderColor: r.color, background: r.bg }}>
+              <p className="font-display text-sm font-bold">{r.period}</p>
+              <p className="font-mono-ar mt-1 text-3xl font-black" style={{ color: r.color }}>{r.pct}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{r.label}</p>
+            </div>
+          ))}
+        </FadeUp>
+
+        <FadeUp className="overflow-hidden rounded-3xl border-2 bg-white" style={{ borderColor: C.amber }}>
+          <div className="px-6 py-4 text-white" style={{ background: C.amber }}>
+            <p className="font-display text-lg font-bold">ماذا تغيّر عن القانون القديم 12/2003؟ (المادة 50)</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-right text-sm">
+              <thead>
+                <tr className="border-b bg-secondary/60">
+                  <th className="px-5 py-3 text-right font-bold text-muted-foreground">المرحلة</th>
+                  <th className="px-5 py-3 text-right font-bold" style={{ color: C.navy }}>القانون القديم 12/2003 (قبل 1/9/2025)</th>
+                  <th className="px-5 py-3 text-right font-bold" style={{ color: C.teal }}>القانون الجديد 14/2025 (م 131)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b bg-white">
+                  <td className="px-5 py-3 font-semibold">أول 3 شهور</td>
+                  <td className="px-5 py-3">شهر واحد 100%</td>
+                  <td className="px-5 py-3 font-bold" style={{ color: C.teal }}>3 شهور 100%</td>
+                </tr>
+                <tr className="border-b bg-secondary/60">
+                  <td className="px-5 py-3 font-semibold">الشهور 4 – 9</td>
+                  <td className="px-5 py-3">75% (8 شهور إجمالاً)</td>
+                  <td className="px-5 py-3 font-bold" style={{ color: C.teal }}>85% (6 شهور)</td>
+                </tr>
+                <tr className="border-b bg-white">
+                  <td className="px-5 py-3 font-semibold">الشهور 10 – 12</td>
+                  <td className="px-5 py-3">بدون أجر</td>
+                  <td className="px-5 py-3 font-bold" style={{ color: C.teal }}>75%</td>
+                </tr>
+                <tr className="bg-secondary/60">
+                  <td className="px-5 py-3 font-semibold">الدورة</td>
+                  <td className="px-5 py-3">12 شهر كل 3 سنوات خدمة</td>
+                  <td className="px-5 py-3 font-bold" style={{ color: C.teal }}>12 شهر مدفوعة بالكامل كل 3 سنوات خدمة</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </FadeUp>
+
+        <FadeUp className="flex items-start gap-3 rounded-3xl border-2 p-5 text-sm leading-relaxed" style={{ borderColor: C.teal, background: C.tealLight }}>
+          <Scale className="mt-0.5 h-6 w-6 shrink-0" style={{ color: C.teal }} />
+          <p>
+            <strong>الأثر العملي:</strong> تحت القانون الجديد مش فيه أي مرحلة "بدون أجر" داخل الدورة — الدورة الكاملة (12 شهر)
+            كلها مدفوعة، وأحسن نقطة إن الشهور الثلاثة الأخيرة اللي كانت بدون أجر بقت بـ75%. راجع حاسبة الإجازة المرضية
+            في صفحة الحاسبات وجرب النظامين بالأرقام.
+          </p>
+        </FadeUp>
+      </div>
+    </Section>
   );
 }
 
@@ -671,7 +773,7 @@ function Footer() {
       <div className="container flex flex-col items-center gap-3 text-center text-sm text-muted-foreground">
         <img src="/manus-storage/logo_mark_b4337a50.png" alt="" className="h-9 w-9 object-contain" />
         <p>دليل عملي للفرق بين المنشآت الصناعية وغير الصناعية — ساعات العمل، الأوفر تايم، والإجازات المرضية.</p>
-        <p className="font-mono-ar text-xs">بدون أرقام مواد قانونية · للأمثلة التعليمية فقط</p>
+        <p className="font-mono-ar text-xs">المراجع: قانون العمل 14/2025 (المادة 131) · قانون العمل 12/2003 (المادة 50) · قانون التأمينات 148/2019 (المادة 76)</p>
       </div>
     </footer>
   );
@@ -683,6 +785,11 @@ export default function Home() {
       <Hero />
       <div id="compare" className="container">
         <Compare />
+      </div>
+      <div id="law131" style={{ background: "#fff" }}>
+        <div className="container">
+          <Article131 />
+        </div>
       </div>
       <div id="hours" style={{ background: "#fff" }}>
         <div className="container">
