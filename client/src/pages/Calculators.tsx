@@ -105,7 +105,7 @@ function OvertimeCalculator() {
   const salary = Math.max(0, parseInt(salaryInput) || 0);
   const [estKey, setEstKey] = useState<EstKey>("industrial");
   const [shiftHours, setShiftHours] = useState(8);
-  const workDays = 30; // الشهر القانوني = 30 يومًا ثابتة
+  const [workDays, setWorkDays] = useState(30); // الشهر القانوني = 30 يومًا (قابل للتعديل)
   const [restDays, setRestDays] = useState(0);
   const [holidayDays, setHolidayDays] = useState(0);
   const [dayOvertimeHours, setDayOvertimeHours] = useState(0);
@@ -238,10 +238,20 @@ function OvertimeCalculator() {
           </div>
           <div>
             <Label className="mb-2 block font-semibold">أيام العمل النظامية:</Label>
-            <div className="h-12 w-full rounded-xl border-2 bg-secondary/60 px-4 text-center font-mono-ar text-lg font-bold leading-[3rem]" style={{ borderColor: C.teal + "66", color: C.teal }}>
-              {workDays} يوم
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">ثابتة تلقائيًا — الشهر القانوني 30 يومًا، أيام الراحة والرسمية تُحسب عليها منفصلة</p>
+            <input
+              type="number"
+              min={0}
+              max={30}
+              step={1}
+              value={workDays}
+              onChange={(e) => {
+                const n = parseInt(e.target.value);
+                setWorkDays(isNaN(n) || n < 0 ? 0 : Math.min(n, 30));
+              }}
+              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
+              style={{ borderColor: C.teal + "66" }}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">الافتراضي 30 يوم (الشهر القانوني) — عدّلها لو أيام وردك الفعلية مختلفة</p>
           </div>
         </div>
 
