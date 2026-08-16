@@ -65,7 +65,7 @@ const ESTABLISHMENTS = [
   },
   {
     value: "commercial",
-    label: "منشأة غير صناعية (تجارية)",
+    label: "منشأة غير صناعية",
     color: C.navy,
     note: "8 ساعات فعلية + ساعة راحة = 9 ساعات تواجُد يومياً",
     maxDaily: 8,
@@ -172,7 +172,7 @@ function OvertimeCalculator() {
           </p>
         </div>
         <div>
-          <Label className="mb-2 block font-semibold">ساعات الورد اليومي الفعلي (ساعة):</Label>
+          <Label className="mb-2 block font-semibold">ساعات الوردية اليومي الفعلي (ساعة):</Label>
           <input
             type="number"
             min={4}
@@ -394,7 +394,7 @@ function SickLeaveCalculator() {
   }, [wage, days, kind, law]);
 
   const kindColor = kind === "industrial" ? C.teal : C.navy;
-  const kindName = kind === "industrial" ? "منشأة صناعية" : "منشأة تجارية";
+  const kindName = kind === "industrial" ? "منشأة صناعية" : "منشأة غير صناعية";
 
   return (
     <div className="rounded-3xl border-2 bg-white p-6 shadow-sm md:p-8" style={{ borderColor: C.navy }}>

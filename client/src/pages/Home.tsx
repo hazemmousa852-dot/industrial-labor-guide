@@ -246,7 +246,7 @@ function Hero() {
           <div className="mt-12 grid max-w-3xl grid-cols-3 gap-4">
             {[
               ["7 + 1", "ساعات الصناعي"],
-              ["8 + 1", "ساعات التجاري"],
+              ["8 + 1", "ساعات غير الصناعية"],
               ["×1.35 / ×1.70", "معاملات الأوفر"],
             ].map(([v, l]) => (
               <div key={l} className="rounded-2xl border bg-white/90 p-4 text-center shadow-sm backdrop-blur">
@@ -315,12 +315,12 @@ function Compare() {
           style={{ borderColor: C.navy, boxShadow: "4px 4px 0 0 oklch(0.32 0.05 250 / 0.15)" }}
         >
           <div className="mb-5 flex items-center justify-between rounded-2xl px-5 py-3 text-white" style={{ backgroundColor: C.navy }}>
-            <span className="font-display text-xl font-bold">منشآت غير صناعية (تجارية)</span>
+            <span className="font-display text-xl font-bold">منشآت غير صناعية</span>
             <Building2 className="h-6 w-6" />
           </div>
           <p className="mb-4 leading-relaxed text-foreground/85">
             الأماكن اللي <strong>مش فيها تحويل مواد خام</strong>. زي: البنوك، المكاتب،
-            الفنادق، المحلات التجارية، والمدارس.
+            الفنادق، المحلات، والمدارس.
           </p>
           <div className="space-y-3">
             <div className="flex items-start gap-3 rounded-xl p-3" style={{ background: C.navyLight }}>
@@ -344,7 +344,7 @@ function Compare() {
       <div className="mt-10 grid gap-4 border-t-2 pt-8 md:grid-cols-3" style={{ borderColor: C.teal + "44" }}>
         {[
           { icon: Factory, title: "القاعدة اللي تفكر بيها", text: "لو فيه تصنيع وتحويل مواد = صناعية، حتى لو شكلها مكتب أو مخزن تابع للمصنع.", color: C.teal },
-          { icon: Clock, title: "الفرق العملي في اليوم", text: "الصناعي يطلع قبل التجاري بساعة — 8 ساعات تواجُد مقابل 9.", color: C.teal },
+          { icon: Clock, title: "الفرق العملي في اليوم", text: "الصناعي يطلع قبل غير الصناعي بساعة — 8 ساعات تواجُد مقابل 9.", color: C.teal },
           { icon: Briefcase, title: "ليه الفرق ده؟", text: "شغل المصانع شاق وأخطر، فالقانون عوّض الصناعي بساعات أقل وتعويض مرضي أكبر.", color: C.amber },
         ].map(({ icon: Icon, title, text, color }, i) => (
           <FadeUp key={title} delay={i * 70} className="flex flex-col gap-3 rounded-2xl p-5" style={{ background: color === C.teal ? C.tealLight : C.amberLight }}>
@@ -364,7 +364,7 @@ function Compare() {
 function Hours() {
   const rows = [
     { type: "صناعية", work: 7, rest: 1, total: 8, color: C.teal },
-    { type: "غير صناعية (تجارية)", work: 8, rest: 1, total: 9, color: C.navy },
+    { type: "غير صناعية", work: 8, rest: 1, total: 9, color: C.navy },
   ];
   return (
     <Section num="02" label="ثانياً · ساعات التواجد" title="ساعات التواجد اليومية — الحساب سهل" style={{ background: "#fff" }}>
@@ -544,7 +544,7 @@ function Decisions() {
             title: "التجهيزية والتكميلية والحراسة والنظافة",
             icon: ShieldCheck,
             color: C.navy,
-            intro: "أعمال التحضير والتشغيل بعد الورد والحراسة والنظافة لها نظام خاص: 48 ساعة أسبوعياً وأضافي 12 ساعة بحد أقصى ساعتين يومياً.",
+            intro: "أعمال التحضير والتشغيل بعد الوردية والحراسة والنظافة لها نظام خاص: 48 ساعة أسبوعياً وأضافي 12 ساعة بحد أقصى ساعتين يومياً.",
             detail: (
               <ul className="space-y-2 text-sm leading-relaxed">
                 <li>• التجهيزية: تجهيز الماكينات والأفران والمواد الخام وبيئة العمل قبل بدء الورود.</li>
@@ -621,7 +621,7 @@ function Decisions() {
 ================================================================= */
 function Summary() {
   const rows = [
-    { item: "طبيعة النشاط", ind: "تصنيع وتحويل مواد خام", com: "خدمة وتجارة بدون تحويل مواد" },
+    { item: "طبيعة النشاط", ind: "تصنيع وتحويل مواد خام", com: "خدمات وتجارة بدون تحويل مواد" },
     { item: "ساعات العمل الفعلية", ind: "7 ساعات", com: "8 ساعات" },
     { item: "ساعة الراحة", ind: "1 ساعة", com: "1 ساعة" },
     { item: "إجمالي التواجُد اليومي", ind: "8 ساعات", com: "9 ساعات" },
@@ -645,7 +645,7 @@ function Summary() {
               <tr>
                 <th className="font-display px-5 py-4 text-sm font-bold text-muted-foreground">البند</th>
                 <th className="font-display px-5 py-4 text-sm font-bold text-white" style={{ background: C.teal }}>صناعية</th>
-                <th className="font-display px-5 py-4 text-sm font-bold text-white" style={{ background: C.navy }}>غير صناعية (تجارية)</th>
+                <th className="font-display px-5 py-4 text-sm font-bold text-white" style={{ background: C.navy }}>غير صناعية</th>
               </tr>
             </thead>
             <tbody>
