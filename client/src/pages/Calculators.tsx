@@ -100,11 +100,19 @@ type EstKey = (typeof ESTABLISHMENTS)[number]["value"];
 /* =================================================================
    حاسبة الأوفر تايم
 ================================================================= */
+/* عند تغيير نوع المنشأة: ضبط الافتراضي لساعات الوردية على الحد الفعلي اليومي للمنشأة الجديدة */
+const DEFAULT_SHIFT: Record<EstKey, number> = {
+  industrial: 7,
+  commercial: 8,
+  intermittent: 8,
+  prep: 8,
+};
+
 function OvertimeCalculator() {
   const [salaryInput, setSalaryInput] = useState("8000");
   const salary = Math.max(0, parseInt(salaryInput) || 0);
   const [estKey, setEstKey] = useState<EstKey>("industrial");
-  const [shiftHours, setShiftHours] = useState(7);
+  const [shiftHours, setShiftHours] = useState(DEFAULT_SHIFT.industrial);
   const [workDays, setWorkDays] = useState(30); // الشهر القانوني = 30 يومًا (قابل للتعديل)
   const [restDays, setRestDays] = useState(0);
   const [holidayDays, setHolidayDays] = useState(0);
@@ -126,7 +134,19 @@ function OvertimeCalculator() {
   const restHours = restDays * shiftHours;
   const holidayHours = holidayDays * shiftHours;
 
-  const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > est.dailyOvertimeCap;
+  // عند تغيير نوع المنشأة: ضبط الافتراضي لساعات الوردية على الحد الفعلي اليومي للمنشأة الجديدة
+  // فقط لو المستخدم لسه على الافتراض السابق (لم يعدّلها بنفسه)
+  const prevEstKey = useRef<EstKey>("industrial");
+  useEffect(() => {
+    const prev = prevEstKey.current;
+    prevEstKey.current = estKey;
+    if (prev !== estKey) {
+      const prevDefault = DEFAULT_SHIFT[prev] ?? 8;
+      if (shiftHours === prevDefault) setShiftHours(DEFAULT_SHIFT[estKey] ?? 8);
+    }
+  }, [estKey]);
+
+const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > est.dailyOvertimeCap;
   const weekCapHit = est.weeklyOvertimeCap !== null && overtimeHours + dayOvertimeHours + nightHours > (est.weeklyOvertimeCap ?? Infinity);
   const restDayWarn = restDays > weeksWorked;
 
