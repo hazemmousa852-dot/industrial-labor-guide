@@ -461,7 +461,7 @@ export default function Calculators() {
         <div className="container flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-md border-2" style={{ borderColor: C.teal, background: C.tealLight }}>
-              <img src="/manus-storage/logo_mark_b4337a50.png" alt="شعار الدليل" className="h-9 w-9 object-contain" />
+              <img src="https://indguide-mmmwgphb.manus.space/manus-storage/logo_mark_png_e108fc7d.png" alt="شعار الدليل" className="h-9 w-9 object-contain" />
             </div>
             <div className="leading-none">
               <span className="font-display block text-lg font-black tracking-tight" style={{ color: C.teal }}>حاسبات دليل العمل</span>
@@ -508,7 +508,7 @@ export default function Calculators() {
 
       <footer className="border-t py-8">
         <div className="container flex flex-col items-center gap-3 text-center text-sm text-muted-foreground">
-          <img src="/manus-storage/logo_mark_b4337a50.png" alt="" className="h-9 w-9 object-contain" />
+          <img src="https://indguide-mmmwgphb.manus.space/manus-storage/logo_mark_png_e108fc7d.png" alt="" className="h-9 w-9 object-contain" />
           <p className="font-mono-ar text-xs">حاسبات تعليمية · المراجع: قانون العمل 12/2003 (م 50، م 127) وقانون التأمينات 148/2019 (م 76)</p>
         </div>
       </footer>

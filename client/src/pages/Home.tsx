@@ -179,7 +179,7 @@ function Hero() {
               className="flex h-11 w-11 items-center justify-center rounded-md border-2"
               style={{ borderColor: C.teal, background: C.tealLight }}
             >
-              <img src="/manus-storage/logo_mark_b4337a50.png" alt="شعار الدليل" className="h-9 w-9 object-contain" />
+              <img src="https://indguide-mmmwgphb.manus.space/manus-storage/logo_mark_png_e108fc7d.png" alt="شعار الدليل" className="h-9 w-9 object-contain" />
             </div>
             <div className="leading-none">
               <span className="font-display block text-lg font-black tracking-tight" style={{ color: C.teal }}>دليل العمل</span>
@@ -192,7 +192,7 @@ function Hero() {
               ["#hours", "ساعات التواجد"],
               ["#decisions", "قرارات 2025"],
               ["#law131", "القانون الجديد (م 131)"],
-              ["/calculators", "العمل الإضافي"],
+              [`${import.meta.env.BASE_URL}calculators`, "العمل الإضافي"],
             ].map(([href, t]) => (
               <a key={href} href={href} className="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary">
                 {t}
@@ -200,7 +200,7 @@ function Hero() {
             ))}
           </nav>
           <a
-            href="/calculators"
+            href={`${import.meta.env.BASE_URL}calculators`}
             className="rounded-full px-4 py-2 text-sm font-bold text-white transition-transform hover:scale-[1.03]"
             style={{ backgroundColor: C.teal }}
           >
@@ -210,7 +210,7 @@ function Hero() {
       </header>
 
       <section className="relative overflow-hidden pb-10 pt-32 md:pt-40">
-        <img src="/manus-storage/hero_editorial_7f87fe06.png" alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-55" />
+        <img src="https://indguide-mmmwgphb.manus.space/manus-storage/hero_editorial_7f87fe06_png_fe09b23c.png" alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover opacity-55" />
         <div
           className="absolute inset-0"
           style={{ background: `linear-gradient(180deg, oklch(0.975 0.008 90 / 0.72) 0%, oklch(0.975 0.008 90 / 0.88) 45%, oklch(0.975 0.008 90) 100%)` }}
@@ -240,7 +240,7 @@ function Hero() {
               </a>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full border-2 bg-white/90 px-8 text-base font-bold backdrop-blur">
-              <a href="/calculators">حاسبة الأوفر تايم</a>
+              <a href={`${import.meta.env.BASE_URL}calculators`}>حاسبة الأوفر تايم</a>
             </Button>
           </div>
           <div className="mt-12 grid max-w-3xl grid-cols-3 gap-4">
@@ -771,7 +771,7 @@ function Footer() {
   return (
     <footer className="border-t py-10">
       <div className="container flex flex-col items-center gap-3 text-center text-sm text-muted-foreground">
-        <img src="/manus-storage/logo_mark_b4337a50.png" alt="" className="h-9 w-9 object-contain" />
+        <img src="https://indguide-mmmwgphb.manus.space/manus-storage/logo_mark_png_e108fc7d.png" alt="" className="h-9 w-9 object-contain" />
         <p>دليل عملي للفرق بين المنشآت الصناعية وغير الصناعية — ساعات العمل، الأوفر تايم، والإجازات المرضية.</p>
         <p className="font-mono-ar text-xs">المراجع: قانون العمل 14/2025 (المادة 131) · قانون العمل 12/2003 (المادة 50) · قانون التأمينات 148/2019 (المادة 76)</p>
       </div>

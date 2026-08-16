@@ -4,10 +4,9 @@ import { AlertCircle, Home } from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function NotFound() {
-  const [, setLocation] = useLocation();
-
-  const handleGoHome = () => {
-    setLocation("/");
+    const handleGoHome = () => {
+    const base = import.meta.env.PROD ? (import.meta.env.BASE_URL as string) : "/";
+    window.location.replace(base);
   };
 
   return (

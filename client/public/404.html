@@ -4,18 +4,14 @@
     <meta charset="UTF-8" />
     <title>الفرق بين المنشآت الصناعية وغير الصناعية</title>
     <script>
-      // Single-page app on GitHub Pages: redirect SPA routes back to the root.
-      var path = location.pathname.replace(/^\/industrial-labor-guide/, "");
-      var target = "/industrial-labor-guide/" + path.replace(/^\//, "");
-      // Preserve query string
-      if (location.search) target += location.search;
-      // Prevent redirect loops
-      var hash = location.hash || "#/";
-      if (hash.startsWith("#/")) {
-        location.replace("/industrial-labor-guide/" + hash.slice(1) + location.search);
-      } else {
-        location.replace(target);
-      }
+      // Single-page app on GitHub Pages: any unknown URL is served by this file.
+      // Store the original path, then load the app root so the app can restore the route.
+      try {
+        var path = location.pathname.replace(/^\/industrial-labor-guide/, "");
+        sessionStorage.setItem("spa_restore_path", path || "/");
+        sessionStorage.setItem("spa_restore_search", location.search || "");
+      } catch (e) { /* ignore storage errors */ }
+      location.replace("/industrial-labor-guide/");
     </script>
     <style>
       body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: Cairo, sans-serif; background: #faf7f0; color: #1c2b3a; }
