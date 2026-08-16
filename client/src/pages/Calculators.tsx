@@ -101,10 +101,11 @@ type EstKey = (typeof ESTABLISHMENTS)[number]["value"];
    حاسبة الأوفر تايم
 ================================================================= */
 function OvertimeCalculator() {
-  const [salary, setSalary] = useState(8000);
+  const [salaryInput, setSalaryInput] = useState("8000");
+  const salary = Math.max(0, parseInt(salaryInput) || 0);
   const [estKey, setEstKey] = useState<EstKey>("industrial");
   const [shiftHours, setShiftHours] = useState(8);
-  const [workDays, setWorkDays] = useState(26);
+  const workDays = 30; // الشهر القانوني = 30 يومًا ثابتة
   const [restDays, setRestDays] = useState(0);
   const [holidayDays, setHolidayDays] = useState(0);
   const [dayOvertimeHours, setDayOvertimeHours] = useState(0);
@@ -147,8 +148,17 @@ function OvertimeCalculator() {
       </div>
       <div className="space-y-5">
         <div>
-          <Label className="mb-2 block font-semibold">الأجر الشهري (جنيه): <span className="font-mono-ar">{salary} جنيه</span></Label>
-          <Slider value={[salary]} min={2000} max={40000} step={250} onValueChange={(v) => setSalary(v[0])} style={{ accentColor: C.teal }} />
+          <Label className="mb-2 block font-semibold">الأجر الشهري (جنيه):</Label>
+          <input
+            type="number"
+            min={0}
+            step={100}
+            value={salaryInput}
+            onChange={(e) => setSalaryInput(e.target.value)}
+            className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
+            style={{ borderColor: C.teal + "66" }}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">الأجر الأساسي الشهري بالجنيه — اكتبه مباشرة</p>
         </div>
         <div>
           <Label className="mb-2 block font-semibold">نوع المنشأة / طبيعة العمل</Label>
@@ -190,25 +200,8 @@ function OvertimeCalculator() {
           <p className="mt-1 text-xs text-muted-foreground">الحد القانوني 8 ساعات فعلية يوميًا — أي زيادة عن الحد يوميًا تُحسب إضافي تلقائيًا</p>
         </div>
 
-        <p className="font-display font-bold" style={{ color: C.navy }}>كم يوم شغلت في الشهر (الشهر القانوني = 30 يوم)؟</p>
-        <div className="grid gap-5 sm:grid-cols-3">
-          <div>
-            <Label className="mb-2 block font-semibold">أيام العمل:</Label>
-            <input
-              type="number"
-              min={0}
-              max={30}
-              step={1}
-              value={workDays}
-              onChange={(e) => {
-                const n = parseInt(e.target.value);
-                setWorkDays(isNaN(n) || n < 0 ? 0 : Math.min(n, 30));
-              }}
-              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
-              style={{ borderColor: C.teal + "66" }}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">الأيام اللي اشتغلتها أيام وردك العادية</p>
-          </div>
+        <p className="font-display font-bold" style={{ color: C.navy }}>أيام الراحة والإجازات اللي اشتغلتها (الشهر القانوني = {workDays} يوم)؟</p>
+        <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <Label className="mb-2 block font-semibold">أيام الراحة الأسبوعية:</Label>
             <input
@@ -242,6 +235,13 @@ function OvertimeCalculator() {
               style={{ borderColor: C.amber + "66" }}
             />
             <p className="mt-1 text-xs text-muted-foreground">أيام اشتغلتها في العطلات الرسمية — تُحسب بضعف الأجر أو يوم راحة تعويضي (م 129 ق 14/2025)</p>
+          </div>
+          <div>
+            <Label className="mb-2 block font-semibold">أيام العمل النظامية:</Label>
+            <div className="h-12 w-full rounded-xl border-2 bg-secondary/60 px-4 text-center font-mono-ar text-lg font-bold leading-[3rem]" style={{ borderColor: C.teal + "66", color: C.teal }}>
+              {workDays} يوم
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">ثابتة تلقائيًا — الشهر القانوني 30 يومًا، أيام الراحة والرسمية تُحسب عليها منفصلة</p>
           </div>
         </div>
 
@@ -344,11 +344,18 @@ function OvertimeCalculator() {
         </div>
 
         <div className="flex items-center justify-between rounded-2xl px-5 py-4 text-white shadow-md" style={{ background: C.teal }}>
-          <span className="font-display font-bold">التعويض المستحق:</span>
+          <span className="font-display font-bold">قيمة الإضافي:</span>
           <span className="font-mono-ar text-2xl font-black">
             <AnimatedNumber value={total} /> جنيه
           </span>
         </div>
+        <div className="flex items-center justify-between rounded-2xl border-2 px-5 py-4" style={{ borderColor: C.navy, background: C.navyLight }}>
+          <span className="font-display font-bold" style={{ color: C.navy }}>إجمالي الأجر بعد الإضافات:</span>
+          <span className="font-mono-ar text-2xl font-black" style={{ color: C.navy }}>
+            {(salary + total).toFixed(2)} جنيه
+          </span>
+        </div>
+        <p className="text-center text-xs text-muted-foreground">الأجر الأساسي {salary.toFixed(2)} جنيه + قيمة الإضافي {total.toFixed(2)} جنيه = {salary + total} جنيه</p>
       </div>
     </div>
   );
