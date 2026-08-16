@@ -380,28 +380,68 @@ function Hours() {
         </table>
       </div>
 
-      <div className="mt-8 grid gap-4 rounded-3xl border bg-white p-6 shadow-sm md:grid-cols-2">
-        {rows.map((r) => (
-          <div key={r.type} className="space-y-4">
-            <p className="font-display text-lg font-bold" style={{ color: r.color }}>{r.type}: 8 ساعات تواجُد</p>
-            <div className="flex items-center gap-2">
-              {Array.from({ length: r.work }).map((_, i) => (
-                <div key={i} className="h-10 flex-1 rounded-md text-center text-[11px] font-semibold leading-[2.5rem] text-white" style={{ backgroundColor: r.color }}>
-                  شغل
-                </div>
-              ))}
-              <div className="h-10 w-12 shrink-0 rounded-md border-2 border-dashed text-center text-[10px] font-semibold leading-[2.2rem]" style={{ borderColor: C.amber, color: C.amber }}>
-                راحة
-              </div>
+      {/* شرح شرط الراحة: لا تعمل أكثر من 5 ساعات متصلة */}
+      <div className="mt-6 grid gap-4 rounded-2xl border-2 bg-white p-6 md:grid-cols-2" style={{ borderColor: C.amber }}>
+            <div className="mb-2 flex items-center gap-2 md:col-span-2">
+              <Clock className="h-5 w-5" style={{ color: C.amber }} />
+              <h3 className="font-display text-lg font-bold">
+                شرط الراحة: لا يجوز العمل أكثر من <span className="font-mono-ar font-black" style={{ color: C.amber }}>5 ساعات متصلة</span> دون راحة
+              </h3>
             </div>
-            <p className="text-sm text-muted-foreground">
-              {r.type === "صناعية"
-                ? "الساعات السبع الأولى شغل فعلي، وبعدها ساعة راحة من غير أجر إضافي — التواجد الكلي 8 ساعات."
-                : "الـ8 ساعات الأولى شغل فعلي، وبعدها ساعة راحة — التواجد الكلي 9 ساعات في المنشأة."}
-            </p>
+
+            {rows.map((r) => {
+              const segments = [];
+              // أقسام الشغل بحد أقصى 5 ساعات متصلة، بعدها راحة 1 ساعة (باستثناء آخر قسم لا يحتاج راحة بعده)
+              let remaining = r.work;
+              let segIndex = 0;
+              while (remaining > 0) {
+                const segHours = Math.min(remaining, 5);
+                segments.push({ hours: segHours, isLast: remaining - segHours <= 0, idx: segIndex });
+                remaining -= segHours;
+                segIndex++;
+              }
+              const breaksBetween = segments.length - 1;
+              return (
+                <div key={r.type} className="space-y-3">
+                  <p className="font-display text-lg font-bold" style={{ color: r.color }}>
+                    {r.type}: إجمالي التواجُد <span className="font-mono-ar">{r.total}</span> ساعات
+                  </p>
+                  {/* المخطط الزمني */}
+                  <div className="flex flex-wrap items-stretch gap-2">
+                    {segments.map((seg) => (
+                      <div key={seg.idx} className="flex flex-1 items-stretch gap-2 min-w-[200px]">
+                        <div className="flex flex-1 gap-1">
+                          {Array.from({ length: seg.hours }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="h-10 flex-1 rounded-sm text-center text-[11px] font-semibold leading-[2.5rem] text-white"
+                              style={{ backgroundColor: r.color }}
+                            >
+                              شغل
+                            </div>
+                          ))}
+                        </div>
+                        {seg.isLast ? null : (
+                          <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-sm border-2 border-dashed"
+                            style={{ borderColor: C.amber, color: C.amber }}>
+                            <span className="text-[10px] font-semibold">راحة</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {r.type === "صناعية"
+                      ? "7 ساعات فعلي تُقسَّم على فترتين (5 ساعات ثم 2 ساعة) بينهما ساعة راحة — التواجد الكلي 8 ساعات."
+                      : "8 ساعات فعلي تُقسَّم على فترتين (5 ساعات ثم 3 ساعات) بينهما ساعة راحة — التواجد الكلي 9 ساعات في المنشأة."}
+                  </p>
+                  <p className="font-mono-ar text-xs font-semibold" style={{ color: C.amber }}>
+                    {r.type === "صناعية" ? "5 شغل + 1 راحة + 2 شغل = 8 ساعات تواجُد" : "5 شغل + 1 راحة + 3 شغل = 9 ساعات تواجُد"}
+                  </p>
+                </div>
+              );
+            })}
           </div>
-        ))}
-      </div>
     </Section>
   );
 }
