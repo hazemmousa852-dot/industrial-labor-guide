@@ -103,18 +103,35 @@ type EstKey = (typeof ESTABLISHMENTS)[number]["value"];
 function OvertimeCalculator() {
   const [salary, setSalary] = useState(8000);
   const [estKey, setEstKey] = useState<EstKey>("industrial");
-  const [dayHours, setDayHours] = useState(2);
-  const [nightHours, setNightHours] = useState(1);
+  const [shiftHours, setShiftHours] = useState(8);
+  const [workDays, setWorkDays] = useState(26);
+  const [restDays, setRestDays] = useState(0);
+  const [holidayDays, setHolidayDays] = useState(0);
+  const [nightHours, setNightHours] = useState(0);
 
   const est = ESTABLISHMENTS.find((e) => e.value === estKey) ?? ESTABLISHMENTS[0];
   const rate = salary / 30 / 8;
-  const totalExtra = dayHours + nightHours;
-  const dayCapHit = est.dailyOvertimeCap !== null && dayHours > est.dailyOvertimeCap;
-  const weekCapHit = est.weeklyOvertimeCap !== null && totalExtra > est.weeklyOvertimeCap;
 
-  const dayComp = dayHours * rate * 1.35;
+  // الحساب التلقائي: ساعات الشهر النظامية = 48 ساعة فعلي × عدد الأسابيع في أيام العمل
+  // (الأسبوع = 6 أيام عمل → 8 ساعات فعلي يومياً = 48 فعلي أسبوعياً)
+  const weeksWorked = workDays / 6;
+  const legalActualHours = 48 * weeksWorked;
+  const workedHours = workDays * shiftHours;
+  const overtimeHours = Math.max(0, workedHours - legalActualHours);
+
+  // ساعات الراحة الأسبوعية والإجازات الرسمية: ضعف الأجر (م 121 و129 ق 14/2025)
+  const restHours = restDays * shiftHours;
+  const holidayHours = holidayDays * shiftHours;
+
+  const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - 8 > est.dailyOvertimeCap;
+  const weekCapHit = est.weeklyOvertimeCap !== null && overtimeHours + nightHours > (est.weeklyOvertimeCap ?? Infinity);
+  const restDayWarn = restDays > weeksWorked;
+
+  const dayComp = overtimeHours * rate * 1.35;
   const nightComp = nightHours * rate * 1.7;
-  const total = dayComp + nightComp;
+  const restComp = restHours * rate * 2;
+  const holidayComp = holidayHours * rate * 2;
+  const total = dayComp + nightComp + restComp + holidayComp;
 
   return (
     <div className="rounded-3xl border-2 bg-white p-6 shadow-sm md:p-8" style={{ borderColor: C.teal }}>
@@ -124,7 +141,7 @@ function OvertimeCalculator() {
         </div>
         <div>
           <h3 className="font-display text-2xl font-bold">حاسبة العمل الإضافي (الأوفر تايم)</h3>
-          <p className="text-sm text-muted-foreground">معاملات: الساعات النهارية ×1.35 — الساعات الليلية ×1.70</p>
+          <p className="text-sm text-muted-foreground">أدخل أيام عملك ووردك — الحاسبة تحسب الساعات الإضافية تلقائيًا</p>
         </div>
       </div>
       <div className="space-y-5">
@@ -154,66 +171,149 @@ function OvertimeCalculator() {
             <span className="font-mono-ar font-black" style={{ color: est.color }}>{rate.toFixed(2)} جنيه/ساعة</span>
           </p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div>
+          <Label className="mb-2 block font-semibold">ساعات الورد اليومي الفعلي (ساعة):</Label>
+          <input
+            type="number"
+            min={4}
+            max={12}
+            step={0.5}
+            value={shiftHours}
+            onChange={(e) => {
+              const n = parseFloat(e.target.value);
+              setShiftHours(isNaN(n) || n < 4 ? 4 : Math.min(n, 12));
+            }}
+            className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
+            style={{ borderColor: C.teal + "66" }}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">الحد القانوني 8 ساعات فعلية يوميًا — أي زيادة عن الحد يوميًا تُحسب إضافي تلقائيًا</p>
+        </div>
+
+        <p className="font-display font-bold" style={{ color: C.navy }}>كم يوم شغلت في الشهر (الشهر القانوني = 30 يوم)؟</p>
+        <div className="grid gap-5 sm:grid-cols-3">
           <div>
-            <Label className="mb-2 block font-semibold">الساعات النهارية (عدد الساعات):</Label>
+            <Label className="mb-2 block font-semibold">أيام العمل:</Label>
             <input
               type="number"
               min={0}
-              max={12}
-              step={0.5}
-              value={dayHours}
+              max={30}
+              step={1}
+              value={workDays}
               onChange={(e) => {
-                const n = parseFloat(e.target.value);
-                setDayHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 12));
+                const n = parseInt(e.target.value);
+                setWorkDays(isNaN(n) || n < 0 ? 0 : Math.min(n, 30));
               }}
               className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
               style={{ borderColor: C.teal + "66" }}
             />
-            <p className="mt-1 text-xs text-muted-foreground">الساعات الإضافية اللي شغلتها في النهار بعد نهاية وردك</p>
+            <p className="mt-1 text-xs text-muted-foreground">الأيام اللي اشتغلتها أيام وردك العادية</p>
           </div>
           <div>
-            <Label className="mb-2 block font-semibold">الساعات الليلية (عدد الساعات):</Label>
+            <Label className="mb-2 block font-semibold">أيام الراحة الأسبوعية:</Label>
             <input
               type="number"
               min={0}
-              max={12}
-              step={0.5}
-              value={nightHours}
+              max={10}
+              step={1}
+              value={restDays}
               onChange={(e) => {
-                const n = parseFloat(e.target.value);
-                setNightHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 12));
+                const n = parseInt(e.target.value);
+                setRestDays(isNaN(n) || n < 0 ? 0 : Math.min(n, 10));
               }}
               className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.35_0.05_250)]"
               style={{ borderColor: C.navy + "66" }}
             />
-            <p className="mt-1 text-xs text-muted-foreground">الساعات الإضافية اللي شغلتها في الفترة الليلية</p>
+            <p className="mt-1 text-xs text-muted-foreground">أيام اشتغلتها بدل يوم الراحة الأسبوعية — تُحسب بضعف الأجر (م 121 ق 14/2025)</p>
+          </div>
+          <div>
+            <Label className="mb-2 block font-semibold">أيام الإجازات الرسمية:</Label>
+            <input
+              type="number"
+              min={0}
+              max={10}
+              step={1}
+              value={holidayDays}
+              onChange={(e) => {
+                const n = parseInt(e.target.value);
+                setHolidayDays(isNaN(n) || n < 0 ? 0 : Math.min(n, 10));
+              }}
+              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.5_0.08_60)]"
+              style={{ borderColor: C.amber + "66" }}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">أيام اشتغلتها في العطلات الرسمية — تُحسب بضعف الأجر أو يوم راحة تعويضي (م 129 ق 14/2025)</p>
           </div>
         </div>
 
-        {(dayCapHit || weekCapHit) && (
+        <div>
+          <Label className="mb-2 block font-semibold">ساعات إضافية ليلية في الشهر كله (اختياري — عدد الساعات):</Label>
+          <input
+            type="number"
+            min={0}
+            max={60}
+            step={0.5}
+            value={nightHours}
+            onChange={(e) => {
+              const n = parseFloat(e.target.value);
+              setNightHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 60));
+            }}
+            className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.35_0.05_250)]"
+            style={{ borderColor: C.navy + "66" }}
+          />
+          <p className="mt-1 text-xs text-muted-foreground">ساعات ليلية إضافية منفصلة عن وردك (إن وُجدت) — إذا كان وردك نفسه ليليًا اتركها صفرًا</p>
+        </div>
+
+        <div className="rounded-xl border bg-white p-3 text-center text-sm" style={{ borderColor: est.color, background: est.color + "14" }}>
+          <span className="font-mono-ar font-bold" style={{ color: est.color }}>
+            {overtimeHours.toFixed(1)} ساعة إضافية نهارية تلقائية
+          </span>
+          <span className="mx-2 text-muted-foreground">=</span>
+          <span className="font-mono-ar">{workDays} يوم × {shiftHours} ساعة = {workedHours.toFixed(0)} ساعة فعلي</span>
+          <span className="mx-2 text-muted-foreground">−</span>
+          <span className="font-mono-ar">الحد القانوني {legalActualHours.toFixed(0)} ساعة (48 فعلي × {weeksWorked.toFixed(1)} أسبوع)</span>
+        </div>
+
+        {(dayCapHit || weekCapHit || restDayWarn) && (
           <div className="flex items-start gap-2 rounded-xl border-2 p-3 text-sm font-semibold leading-relaxed" style={{ borderColor: C.amber, background: C.amberLight, color: C.amber }}>
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
             <span>
               {dayCapHit &&
-                `في الأعمال التجهيزية والحراسة والنظافة (قرار 292/2025) الحد الأقصى للإضافي ساعتان في اليوم — وأنت أدخلت ${dayHours} ساعة نهارية.`}
+                `في الأعمال التجهيزية والحراسة والنظافة (قرار 292/2025) الحد الأقصى للإضافي ساعتان في اليوم — وردك (${shiftHours} ساعة) يتجاوز الحد 8+2.`}
               {" "}
               {weekCapHit &&
-                `مجموع الساعات الإضافية (${totalExtra.toFixed(1)}) تجاوز الحد الأسبوعي ${est.weeklyOvertimeCap} ساعة بقرار 292/2025.`}
+                `مجموع الساعات الإضافية (${(overtimeHours + nightHours).toFixed(1)}) تجاوز الحد الأسبوعي ${est.weeklyOvertimeCap} ساعة بقرار 292/2025.`}
+              {" "}
+              {restDayWarn &&
+                `عدد أيام الراحة اللي اشتغلتها (${restDays}) أكثر من أسابيعك الفعلية (${weeksWorked.toFixed(1)}) — راجع المدخلات.`}
             </span>
           </div>
         )}
 
         <div className="space-y-2 rounded-2xl border p-4 text-sm" style={{ background: C.cream }}>
           <p className="font-semibold text-muted-foreground">الحساب خطوة بخطوة:</p>
-          <p>
-            <span className="font-mono-ar">{dayHours}</span> ساعة نهارية × {rate.toFixed(2)} جنيه × 1.35 ={" "}
-            <span className="font-mono-ar font-bold" style={{ color: C.teal }}>{dayComp.toFixed(2)}</span> جنيه
-          </p>
-          <p>
-            <span className="font-mono-ar">{nightHours}</span> ساعة ليلية × {rate.toFixed(2)} جنيه × 1.70 ={" "}
-            <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{nightComp.toFixed(2)}</span> جنيه
-          </p>
+          {overtimeHours > 0 && (
+            <p>
+              <span className="font-mono-ar">{overtimeHours.toFixed(1)}</span> ساعة إضافية نهارية تلقائية × {rate.toFixed(2)} جنيه × 1.35 ={" "}
+              <span className="font-mono-ar font-bold" style={{ color: C.teal }}>{dayComp.toFixed(2)}</span> جنيه
+            </p>
+          )}
+          {restHours > 0 && (
+            <p>
+              <span className="font-mono-ar">{restDays}</span> يوم راحة أسبوعية × {shiftHours} ساعة × {rate.toFixed(2)} جنيه × 2 (ضعف الأجر) ={" "}
+              <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{restComp.toFixed(2)}</span> جنيه
+            </p>
+          )}
+          {holidayHours > 0 && (
+            <p>
+              <span className="font-mono-ar">{holidayDays}</span> يوم إجازة رسمية × {shiftHours} ساعة × {rate.toFixed(2)} جنيه × 2 (ضعف الأجر) ={" "}
+              <span className="font-mono-ar font-bold" style={{ color: C.amber }}>{holidayComp.toFixed(2)}</span> جنيه
+            </p>
+          )}
+          {nightHours > 0 && (
+            <p>
+              <span className="font-mono-ar">{nightHours}</span> ساعة ليلية × {rate.toFixed(2)} جنيه × 1.70 ={" "}
+              <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{nightComp.toFixed(2)}</span> جنيه
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between rounded-2xl px-5 py-4 text-white shadow-md" style={{ background: C.teal }}>
