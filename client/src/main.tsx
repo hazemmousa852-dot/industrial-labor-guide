@@ -15,7 +15,9 @@ if (import.meta.env.PROD) {
       sessionStorage.removeItem("spa_restore_path");
       const search = sessionStorage.getItem("spa_restore_search") || "";
       sessionStorage.removeItem("spa_restore_search");
-      const target = import.meta.env.BASE_URL.replace(/\/$/, "") + restorePath + search;
+      // Normalize: strip trailing slash so "/calculators/" becomes "/calculators"
+      const normalized = restorePath.replace(/\/$/, "") || "/";
+      const target = import.meta.env.BASE_URL.replace(/\/$/, "") + normalized + search;
       window.history.replaceState(null, "", target);
     }
   } catch (e) { /* ignore storage errors */ }

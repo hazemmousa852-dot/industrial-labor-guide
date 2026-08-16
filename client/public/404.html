@@ -7,7 +7,8 @@
       // Single-page app on GitHub Pages: any unknown URL is served by this file.
       // Store the original path, then load the app root so the app can restore the route.
       try {
-        var path = location.pathname.replace(/^\/industrial-labor-guide/, "");
+        // Normalize: strip trailing slash so "/calculators/" becomes "/calculators"
+        var path = location.pathname.replace(/^\/industrial-labor-guide/, "").replace(/\/$/, "");
         sessionStorage.setItem("spa_restore_path", path || "/");
         sessionStorage.setItem("spa_restore_search", location.search || "");
       } catch (e) { /* ignore storage errors */ }
