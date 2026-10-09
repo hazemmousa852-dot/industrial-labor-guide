@@ -175,12 +175,7 @@ function Hero() {
       >
         <div className="container flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div
-              className="flex h-11 w-11 items-center justify-center rounded-md border-2"
-              style={{ borderColor: C.teal, background: C.tealLight }}
-            >
-              <img src="https://indguide-mmmwgphb.manus.space/manus-storage/logo_mark_png_e108fc7d.png" alt="شعار الدليل" className="h-9 w-9 object-contain" />
-            </div>
+            <img src="https://hazemmousa852-dot.github.io/marjaak-alqanuni/brand/logo-512.png" alt="شعار حازم موسى" width={48} height={48} className="hm-tool-logo hm-tool-logo--compact" />
             <div className="leading-none">
               <span className="font-display block text-lg font-black tracking-tight" style={{ color: C.teal }}>دليل العمل</span>
               <span className="font-mono-ar block text-[10px] font-semibold tracking-[0.2em] text-muted-foreground">مرجع عمالي عملي</span>
@@ -823,7 +818,7 @@ function Footer() {
   return (
     <footer className="border-t py-10">
       <div className="container flex flex-col items-center gap-3 text-center text-sm text-muted-foreground">
-        <img src="https://indguide-mmmwgphb.manus.space/manus-storage/logo_mark_png_e108fc7d.png" alt="" className="h-9 w-9 object-contain" />
+        <img src="https://hazemmousa852-dot.github.io/marjaak-alqanuni/brand/logo-512.png" alt="شعار حازم موسى" width={48} height={48} className="hm-tool-logo hm-tool-logo--compact" />
         <p>دليل عملي للفرق بين المنشآت الصناعية وغير الصناعية — ساعات العمل، الأوفر تايم، والإجازات المرضية.</p>
         <p className="font-mono-ar text-xs">المراجع: قانون العمل 14/2025 (المادة 131) · قانون العمل 12/2003 (المادة 50) · قانون التأمينات 148/2019 (المادة 76)</p>
       </div>
@@ -858,3 +853,4 @@ export default function Home() {
     </div>
   );
 }
+
