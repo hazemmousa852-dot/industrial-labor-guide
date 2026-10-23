@@ -340,7 +340,7 @@ function Compare() {
         {[
           { icon: Factory, title: "القاعدة اللي تفكر بيها", text: "لو فيه تصنيع وتحويل مواد = صناعية، حتى لو شكلها مكتب أو مخزن تابع للمصنع.", color: C.teal },
           { icon: Clock, title: "الفرق العملي في اليوم", text: "الصناعي يطلع قبل غير الصناعي بساعة — 8 ساعات تواجُد مقابل 9.", color: C.teal },
-          { icon: Briefcase, title: "ليه الفرق ده؟", text: "شغل المصانع شاق وأخطر، فالقانون عوّض الصناعي بساعات أقل وتعويض مرضي أكبر.", color: C.amber },
+          { icon: Briefcase, title: "ليه الفرق ده؟", text: "الدليل يعتمد 7 ساعات للصناعية و8 لغير الصناعية كأساس حساب، مع فصل الراحة ومراعاة المزايا الأفضل. والاستحقاق المرضي الصناعي له نطاق خاص بالمادة 131.", color: C.amber },
         ].map(({ icon: Icon, title, text, color }, i) => (
           <FadeUp key={title} delay={i * 70} className="flex flex-col gap-3 rounded-2xl p-5" style={{ background: color === C.teal ? C.tealLight : C.amberLight }}>
             <Icon className="h-6 w-6" style={{ color }} />
@@ -460,7 +460,7 @@ function Hours() {
           </h3>
         </div>
         <p className="text-sm leading-relaxed text-foreground/85">
-          المادة 121 من قانون العمل 14/2025 بتقول إن اشتغال العامل في يوم الراحة الأسبوعية أو في إجازة رسمية — بموافقة صاحب العمل — مش أوفر تايم بالساعات،
+          المادة 121 من قانون العمل 14/2025 بتقول إن اشتغال العامل في يوم الراحة الأسبوعية — بموافقة صاحب العمل — مش أوفر تايم بالساعات،
           لكنه بيعوض بـ<strong> أجر يوم كامل زيادة</strong> عن كل يوم اشتغله،<strong> ويأخد يوم راحة تعويضي خلال الأسبوع اللي وراه</strong> بدل اليوم اللي اشتغله.
         </p>
         <div className="grid gap-3 rounded-2xl p-4 text-sm" style={{ background: C.navyLight }}>
@@ -780,7 +780,7 @@ function Article131() {
               <p className="mb-4">
                 للعامل بالمنشآت غير الصناعية (البنوك، المكاتب، الفنادق، المحلات، المدارس...) تعويض مرضي من التأمينات
                 الاجتماعية على أساس: <strong>أول 3 شهور بـ75%</strong> من أجره، ثم <strong>الشهور 4 – 6 بـ85%</strong> —
-                بإجمالي <strong>6 شهور كحد أقصى</strong> خلال الدورة، وذلك بعد قرار الجهة الطبية المختصة بعدم قدرته على العمل.
+                بإجمالي <strong>6 شهور كحد أقصى</strong> في السنة الميلادية للمرض العادي، مع مراعاة الاستثناء الخاص للأمراض المزمنة وقرار الجهة الطبية المختصة.
               </p>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
@@ -805,8 +805,8 @@ function Article131() {
         <FadeUp className="flex items-start gap-3 rounded-3xl border-2 p-5 text-sm leading-relaxed" style={{ borderColor: C.teal, background: C.tealLight }}>
           <Scale className="mt-0.5 h-6 w-6 shrink-0" style={{ color: C.teal }} />
           <p>
-            <strong>الخلاصة:</strong> الصناعي دورته أطول وأحسن — 12 شهر مدفوعة (100% ثم 85% ثم 75%)، بينما غير الصناعي
-            6 شهور فقط (75% ثم 85%). جرّب النظامين بالأرقام في حاسبة الإجازة المرضية في صفحة الحاسبات.
+            <strong>الخلاصة:</strong> الصناعي له دورة كل ثلاث سنوات خدمة بنسب أجر متدرجة (100% ثم 85% ثم 75%)، بينما التعويض العام للمرض العادي يصل إلى
+            180 يومًا في السنة الميلادية (75% ثم 85%)، مع مراعاة الحد الأدنى والاستثناءات الطبية. جرّب النظامين بالأرقام في حاسبة الإجازة المرضية في صفحة الحاسبات.
           </p>
         </FadeUp>
       </div>
