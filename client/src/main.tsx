@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import "./tool-ui.css";
 
 /**
  * GitHub Pages SPA fallback: when the user opens an inner route (e.g. /calculators)

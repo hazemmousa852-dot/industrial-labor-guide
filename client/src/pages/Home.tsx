@@ -49,13 +49,13 @@ import {
 
 /* ---------- ألوان العلامة ---------- */
 const C = {
-  teal: "#1e6f5c",
-  tealLight: "#e9f3ef",
-  navy: "#1f3a4d",
-  navyLight: "#e8eef3",
-  amber: "#d4912a",
-  amberLight: "#fef5e3",
-  cream: "#faf8f4",
+  teal: "var(--hm-teal, #1e6f5c)",
+  tealLight: "var(--hm-teal-light, #e9f3ef)",
+  navy: "var(--hm-navy, #1f3a4d)",
+  navyLight: "var(--hm-navy-light, #e8eef3)",
+  amber: "var(--hm-amber, #d4912a)",
+  amberLight: "var(--hm-amber-light, #fef5e3)",
+  cream: "var(--hm-canvas, #faf8f4)",
 };
 
 /* ---------- hook: fade-up عند الظهور ---------- */
@@ -127,7 +127,7 @@ function Section({
             {label}
           </p>
         </div>
-        <div className="mt-6 h-px w-full" style={{ background: C.teal + "33" }} />
+        <div className="mt-6 h-px w-full" style={{ background: `color-mix(in srgb, ${C.teal} 20.0%, transparent)` }} />
         <FadeUp>{children}</FadeUp>
       </div>
     </section>
@@ -169,7 +169,7 @@ function Hero() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
+        className={`hm-ui-header fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
           scrolled ? "border-b bg-white/90 py-2 backdrop-blur-xl" : "border-transparent bg-transparent py-4"
         }`}
         style={{ borderColor: scrolled ? "oklch(0.89 0.012 95)" : "transparent" }}
@@ -337,7 +337,7 @@ function Compare() {
       </div>
 
       {/* خلاصة سريعة */}
-      <div className="mt-10 grid gap-4 border-t-2 pt-8 md:grid-cols-3" style={{ borderColor: C.teal + "44" }}>
+      <div className="mt-10 grid gap-4 border-t-2 pt-8 md:grid-cols-3" style={{ borderColor: `color-mix(in srgb, ${C.teal} 26.667%, transparent)` }}>
         {[
           { icon: Factory, title: "القاعدة اللي تفكر بيها", text: "التصنيع مثال تعليمي للنشاط الصناعي. انطباق الحكم يتحدد بنطاق القانون والترخيص وطبيعة المنشأة؛ تبعية مكتب أو مخزن وحدها لا تحسم كل الأحكام.", color: C.teal },
           { icon: Clock, title: "الفرق العملي في اليوم", text: "في مثال نظام الـ7 ساعات: التواجد 8 ساعات مع ساعة راحة. وفي نظام الـ8 ساعات: التواجد 9 ساعات. راجع النظام الفعلي بالمنشأة.", color: C.teal },
@@ -375,7 +375,7 @@ function Hours() {
           </thead>
           <tbody>
             {rows.map((r, i) => (
-              <tr key={r.type} className={`border-t transition-colors hover:bg-secondary ${i === 0 ? "" : ""}`} style={i === 0 ? { background: C.tealLight + "55" } : { background: C.navyLight + "55" }}>
+              <tr key={r.type} className={`border-t transition-colors hover:bg-secondary ${i === 0 ? "" : ""}`} style={i === 0 ? { background: `color-mix(in srgb, ${C.tealLight} 33.333%, transparent)` } : { background: `color-mix(in srgb, ${C.navyLight} 33.333%, transparent)` }}>
                 <td className="px-5 py-4 font-bold">{r.type}</td>
                 <td className="px-5 py-4"><span className="font-mono-ar">{r.work}</span> ساعات</td>
                 <td className="px-5 py-4"><span className="font-mono-ar">{r.rest}</span> ساعة</td>
@@ -673,8 +673,8 @@ function Summary() {
               {rows.map((r, i) => (
                 <tr key={r.item} className={`border-t text-sm ${i % 2 === 0 ? "bg-secondary/60" : "bg-white"}`}>
                   <td className="px-5 py-3 font-semibold">{r.item}</td>
-                  <td className="px-5 py-3" style={{ background: C.tealLight + "66" }}>{r.ind}</td>
-                  <td className="px-5 py-3" style={{ background: C.navyLight + "66" }}>{r.com}</td>
+                  <td className="px-5 py-3" style={{ background: `color-mix(in srgb, ${C.tealLight} 40.0%, transparent)` }}>{r.ind}</td>
+                  <td className="px-5 py-3" style={{ background: `color-mix(in srgb, ${C.navyLight} 40.0%, transparent)` }}>{r.com}</td>
                 </tr>
               ))}
             </tbody>

@@ -20,13 +20,13 @@ import { Label } from "@/components/ui/label";
 
 /* ---------- ألوان العلامة ---------- */
 const C = {
-  teal: "#1e6f5c",
-  tealLight: "#e9f3ef",
-  navy: "#1f3a4d",
-  navyLight: "#e8eef3",
-  amber: "#d4912a",
-  amberLight: "#fef5e3",
-  cream: "#faf8f4",
+  teal: "var(--hm-teal, #1e6f5c)",
+  tealLight: "var(--hm-teal-light, #e9f3ef)",
+  navy: "var(--hm-navy, #1f3a4d)",
+  navyLight: "var(--hm-navy-light, #e8eef3)",
+  amber: "var(--hm-amber, #d4912a)",
+  amberLight: "var(--hm-amber-light, #fef5e3)",
+  cream: "var(--hm-canvas, #faf8f4)",
 };
 
 /* ---------- عدّاد متحرك للنتائج ---------- */
@@ -278,7 +278,7 @@ function SickLeaveCalculator() {
               setDays(isNaN(n) || n < 1 ? 1 : Math.min(n, 365));
             }}
             className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
-            style={{ borderColor: C.teal + "66" }}
+            style={{ borderColor: `color-mix(in srgb, ${C.teal} 40.0%, transparent)` }}
           />
           <p className="mt-1 text-xs text-muted-foreground">يعادل <span className="font-mono-ar font-bold">{months.toFixed(2)} شهر</span> (للتقدير العددي هنا: الشهر 30 يومًا وقيمة اليوم 1/30 من الأجر. تُراجع المدد بالتواريخ الفعلية والقرار الطبي عند التسوية)</p>
         </div>
@@ -412,7 +412,7 @@ export default function Calculators() {
   return (
     <div className="min-h-screen paper-grain" style={{ background: C.cream }}>
       {/* شريط علوي بسيط */}
-      <header className="border-b bg-white/90 py-4 backdrop-blur-xl">
+      <header className="hm-ui-header border-b bg-white/90 py-4 backdrop-blur-xl">
         <div className="container flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img src="https://hazemmousa852-dot.github.io/marjaak-alqanuni/brand/logo-512.png" alt="شعار حازم موسى" width={48} height={48} className="hm-tool-logo hm-tool-logo--compact" />
