@@ -142,7 +142,7 @@ function OvertimeCalculator() {
     ["إجمالي الأجر الشهري المدخل قبل الإضافات", `${monthlyTotal.toFixed(2)} جنيه`],
     ["الإجمالي قبل الخصومات", `${(monthlyTotal+result.total).toFixed(2)} جنيه`],
   ];
-  return <section className="rounded-3xl border-2 bg-white p-5 shadow-sm md:p-8" style={{borderColor:C.teal}}>
+  return <section className="hm-panel rounded-3xl border-2 bg-white p-5 shadow-sm md:p-8" style={{borderColor:C.teal}}>
     <h3 className="mb-2 text-2xl font-bold">حاسبة العمل الإضافي (الأوفر تايم)</h3>
     <p className="mb-6 text-sm text-muted-foreground">حدد نظام منشأتك ووعاء الأجر، ثم وزّع ساعات الإضافي بين النهار والليل.</p>
     <div className="space-y-5">
@@ -179,7 +179,7 @@ function OvertimeCalculator() {
       <p className="text-xs">الراحة الأسبوعية: أجر يوم زيادة مع يوم راحة خلال الأسبوع التالي (م 121). العطلة الرسمية: مثلي أجر اليوم زيادة على أجره، أو يوم بديل بطلب كتابي (م 129). الأجر العادي مفترض ضمن الأجر الشهري المدخل.</p>
       {capHit && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm">وردية الأعمال التجهيزية والحراسة والنظافة تتجاوز ساعتين إضافيتين يوميًا حسب ملخص القرار 292؛ راجع قانونية التكليف.</p>}
       {est.weeklyOvertimeCap !== null && <p className="text-xs">الإضافي للأعمال الخاصة: حد {est.weeklyOvertimeCap} ساعة أسبوعيًا؛ لا يمكن إثبات الالتزام الأسبوعي من مجموع الشهر.</p>}
-      <div className="rounded-2xl border p-4" id="overtime-summary">
+      <div className="hm-result rounded-2xl border p-4" id="overtime-summary">
         <h4 className="mb-3 text-lg font-bold">ملخص الحساب — حازم موسى</h4>
         <p className="mb-3 text-xs">{est.label} · تحديث النموذج 30 أكتوبر 2026 · {invalidDays || !wageBasis.trim() || !hoursBasis.trim() ? "تقديري — استكمال المدخلات والمراجعة مطلوب" : "حساب وفق المدخلات — يخضع لمراجعة السند"}</p>
         <dl className="space-y-2 text-sm">{summary.map(([label,value])=><div key={label} className="grid gap-1 border-b py-2 sm:grid-cols-2"><dt className="font-semibold">{label}</dt><dd className="break-words">{value}</dd></div>)}</dl>
@@ -230,7 +230,7 @@ function SickLeaveCalculator() {
   const kindName = kind === "industrial" ? "منشأة صناعية" : "منشأة غير صناعية";
 
   return (
-    <div className="rounded-3xl border-2 bg-white p-6 shadow-sm md:p-8" style={{ borderColor: C.navy }}>
+    <div className="hm-panel rounded-3xl border-2 bg-white p-6 shadow-sm md:p-8" style={{ borderColor: C.navy }}>
       <div className="mb-6 flex items-center gap-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl text-white" style={{ background: C.navy }}>
           <Stethoscope className="h-6 w-6" />
@@ -387,7 +387,7 @@ function SickLeaveCalculator() {
           </span>
         </div>
         {kind === "industrial" && <p className="rounded-xl border p-3 text-sm">تعويض التأمينات المدخل: {insurancePaid.toFixed(2)} جنيه — استكمال صاحب العمل: {Math.max(0,detail.total-insurancePaid).toFixed(2)} جنيه. {insurancePaid > detail.total ? "التعويض المدخل يتجاوز الأجر المستحق؛ راجع المستندات قبل الاعتماد." : "يُدخل التعويض من بيان معتمد عن نفس الفترة؛ الصفر لا يثبت عدم الاستحقاق التأميني."}</p>}
-        <div id="sick-summary" className="rounded-2xl border p-4 text-sm space-y-2">
+        <div id="sick-summary" className="hm-result rounded-2xl border p-4 text-sm space-y-2">
           <h4 className="text-lg font-bold">ملخص الإجازة المرضية — حازم موسى</h4>
           <p>تحديث النموذج: 30 أكتوبر 2026 · نتيجة تقديرية وفق المدخلات والمستندات الطبية.</p>
           <p>{kindName} — {kind === "industrial" ? (law === "new" ? "م 131 ق 14/2025" : "م 50 ق 12/2003 — تاريخي") : "م 76 ق 148/2019"}</p>
@@ -410,7 +410,7 @@ function SickLeaveCalculator() {
 ================================================================= */
 export default function Calculators() {
   return (
-    <div className="min-h-screen paper-grain" style={{ background: C.cream }}>
+    <div className="hm-ui min-h-screen" style={{ background: C.cream }}>
       {/* شريط علوي بسيط */}
       <header className="hm-ui-header border-b bg-white/90 py-4 backdrop-blur-xl">
         <div className="container flex items-center justify-between">
