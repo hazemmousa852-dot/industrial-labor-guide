@@ -1,3 +1,6 @@
+import LegalReferences from "@/components/LegalReferences";
+import PrintSummary from "@/components/PrintSummary";
+import { calculateOvertime } from "@/lib/overtime";
 /**
  * ستايل "دفتر المراجع العمالي" — Editorial Ledger
  * صفحة الحاسبات المستقلة: الأوفر تايم + الإجازة المرضية — بدون أي شرح تعليمي
@@ -56,7 +59,7 @@ const ESTABLISHMENTS = [
     value: "industrial",
     label: "منشأة صناعية",
     color: C.teal,
-    note: "أساس الحساب المعتمد للصناعية: 7 ساعات فعلية يوميًا و42 أسبوعيًا؛ الراحة منفصلة. يُراعى نطاق النص القانوني وأي ميزة أفضل بالمنشأة.",
+    note: "الصناعي: حدد ساعات النظام الفعلي. 7 ساعات مثال لميزة أفضل بعقد أو لائحة؛ ملخص القرار 289 يورد حد 8 ساعات و48 أسبوعيًا. الراحة منفصلة ما لم ينطبق استثناء.",
     maxDaily: 7,
     maxWeekly: 42,
     dailyOvertimeCap: null as number | null,
@@ -99,307 +102,93 @@ type EstKey = (typeof ESTABLISHMENTS)[number]["value"];
 /* =================================================================
    حاسبة الأوفر تايم
 ================================================================= */
-/* عند تغيير نوع المنشأة: ضبط الافتراضي لساعات الوردية على الحد الفعلي اليومي للمنشأة الجديدة */
-const DEFAULT_SHIFT: Record<EstKey, number> = {
-  industrial: 7,
-  commercial: 8,
-  intermittent: 8,
-  prep: 8,
-};
-
 function OvertimeCalculator() {
-  const [salaryInput, setSalaryInput] = useState("8000");
-  const salary = Math.max(0, parseFloat(salaryInput) || 0);
+  const [salary, setSalary] = useState(8000);
+  const [monthlyTotal, setMonthlyTotal] = useState(8000);
+  const [wageBasis, setWageBasis] = useState("");
   const [estKey, setEstKey] = useState<EstKey>("industrial");
-  const [shiftHours, setShiftHours] = useState(DEFAULT_SHIFT.industrial);
-  const [workDays, setWorkDays] = useState(30); // الشهر القانوني = 30 يومًا (قابل للتعديل)
+  const [dailyHours, setDailyHours] = useState(7);
+  const [hoursBasis, setHoursBasis] = useState("");
+  const [shiftHours, setShiftHours] = useState(7);
+  const [workDays, setWorkDays] = useState(26);
   const [restDays, setRestDays] = useState(0);
   const [holidayDays, setHolidayDays] = useState(0);
-  const [dayOvertimeHours, setDayOvertimeHours] = useState(0);
-  const [nightHours, setNightHours] = useState(0);
-  const [nightShift, setNightShift] = useState(false);
-
-  const est = ESTABLISHMENTS.find((e) => e.value === estKey) ?? ESTABLISHMENTS[0];
-  // قيمة الساعة حسب المنشأة: الأجر ÷ 30 يوم (قيمة اليوم) ÷ ساعات العمل الفعلية (7 صناعية / 8 غير صناعية)
-  const dayValue = salary / 30;
-  const rate = dayValue / est.maxDaily;
-
-  // الحساب التلقائي: ساعات الشهر النظامية = الحد الأسبوعي الفعلي × عدد الأسابيع في أيام العمل
-  // (الأسبوع = 6 أيام عمل × maxDaily فعلي = legalWeekly فعلي أسبوعياً)
-  const weeksWorked = workDays / 6;
-  const legalWeekly = est.maxWeekly ?? 48;
-  const legalActualHours = legalWeekly * weeksWorked;
-  const workedHours = workDays * shiftHours;
-  const overtimeHours = Math.max(0, workedHours - legalActualHours);
-
-  // ساعات الراحة الأسبوعية والإجازات الرسمية: ضعف الأجر (م 121 و129 ق 14/2025)
-  const restHours = restDays * shiftHours;
-  const holidayHours = holidayDays * shiftHours;
-
-  // عند تغيير نوع المنشأة: ضبط الافتراضي لساعات الوردية على الحد الفعلي اليومي للمنشأة الجديدة
-  // فقط لو المستخدم لسه على الافتراض السابق (لم يعدّلها بنفسه)
-  const prevEstKey = useRef<EstKey>("industrial");
-  useEffect(() => {
-    const prev = prevEstKey.current;
-    prevEstKey.current = estKey;
-    if (prev !== estKey) {
-      const prevDefault = DEFAULT_SHIFT[prev] ?? 8;
-      if (shiftHours === prevDefault) setShiftHours(DEFAULT_SHIFT[estKey] ?? 8);
-    }
-  }, [estKey]);
-
-  // يوم الراحة الأسبوعية: أجر يوم زيادة + يوم راحة تعويضي خلال الأسبوع التالي (م 121 ق 14/2025)
-  const restDayPay = restDays * dayValue; // أجر يوم كامل عن كل يوم راحة اشتغلها
-  const dayCapHit = est.dailyOvertimeCap !== null && shiftHours - est.maxDaily > est.dailyOvertimeCap;
-  const weekCapHit = false; // Monthly totals cannot establish a weekly breach.
-  const restDayWarn = restDays > weeksWorked;
-
-  const automaticDayHours = nightShift ? 0 : overtimeHours;
-  const automaticNightHours = nightShift ? overtimeHours : 0;
-  const dayComp = (automaticDayHours + dayOvertimeHours) * rate * 1.35;
-  const nightComp = (nightHours + automaticNightHours) * rate * 1.7;
-  const restComp = restDayPay; // أجر يوم زيادة عن كل يوم راحة أسبوعية + راحة تعويضية خلال الأسبوع التالي
-  const holidayComp = holidayDays * dayValue * 2;
-  const total = dayComp + nightComp + restComp + holidayComp;
-
-  return (
-    <div className="rounded-3xl border-2 bg-white p-6 shadow-sm md:p-8" style={{ borderColor: C.teal }}>
-      <div className="mb-6 flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl text-white" style={{ background: C.teal }}>
-          <Coins className="h-6 w-6" />
-        </div>
-        <div>
-          <h3 className="font-display text-2xl font-bold">حاسبة العمل الإضافي (الأوفر تايم)</h3>
-          <p className="text-sm text-muted-foreground">أدخل أيام الوردية الفعلية وساعاتها؛ النهار والليل لهما معاملان مستقلان</p>
-        </div>
+  const [extraDayHours, setExtraDayHours] = useState(0);
+  const [extraNightHours, setExtraNightHours] = useState(0);
+  const [automaticNightHours, setAutomaticNightHours] = useState(0);
+  const [holidayTimeOff, setHolidayTimeOff] = useState(false);
+  const est = ESTABLISHMENTS.find(e => e.value === estKey) ?? ESTABLISHMENTS[0];
+  const result = calculateOvertime({ wage: salary, dailyHours, shiftHours, workDays, automaticNightHours, extraDayHours, extraNightHours, restDays, holidayDays, holidayTimeOff });
+  const totalDays = workDays + restDays + holidayDays;
+  const invalidDays = totalDays > 31;
+  const capHit = est.dailyOvertimeCap !== null && shiftHours - dailyHours > est.dailyOvertimeCap;
+  const numberField = (id: string, label: string, value: number, change: (v: number) => void, max: number, step = 1, min = 0) => <label htmlFor={id} className="block text-sm font-semibold">{label}<input id={id} type="number" min={min} max={max} step={step} value={value} onChange={e => change(Math.min(max, Math.max(min, step === 1 ? Math.floor(Number(e.target.value) || 0) : Number(e.target.value) || 0)))} className="mt-2 h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar" /></label>;
+  const summary = [
+    ["وعاء الأجر الشهري المستخدم", `${salary.toFixed(2)} جنيه`],
+    ["مكونات وعاء الأجر وسنده", wageBasis || "لم يُحدد — نتيجة تقديرية"],
+    ["ساعات العمل المعتمدة", `${dailyHours} ساعة يوميًا — ${hoursBasis || "لم يحدد السند"}`],
+    ["أيام الوردية / ساعاتها الفعلية", `${workDays} يوم / ${shiftHours} ساعة يوميًا`],
+    ["قيمة الساعة", `${result.rate.toFixed(2)} جنيه = ${salary} ÷ 30 ÷ ${dailyHours}`],
+    ["الإضافي التلقائي وتوزيعه", `${result.automaticHours.toFixed(2)} ساعة: نهار ${(result.automaticHours-result.automaticNight).toFixed(2)} / ليل ${result.automaticNight.toFixed(2)}`],
+    ["الإضافي اليدوي خارج الوردية", `نهار ${extraDayHours} / ليل ${extraNightHours} ساعة`],
+    ["تعويض النهار ×1.35", `${result.dayPay.toFixed(2)} جنيه`],
+    ["تعويض الليل ×1.70", `${result.nightPay.toFixed(2)} جنيه`],
+    ["الراحة الأسبوعية", `${restDays} يوم — ${result.restPay.toFixed(2)} جنيه زيادة + ${restDays} يوم راحة تعويضي`],
+    ["العطلات الرسمية", `${holidayDays} يوم — ${holidayTimeOff ? "راحة بديلة بطلب كتابي من العامل" : `${result.holidayPay.toFixed(2)} جنيه زيادة`}`],
+    ["إجمالي الإضافات", `${result.total.toFixed(2)} جنيه`],
+    ["مرجع المعاملات", "م 121 و129 ق 14/2025 — يلزم مراجعة وعاء الأجر ونطاق التطبيق"],
+    ["نطاق الحساب", "وردية ثابتة؛ لا يشمل التداخل بين عطلة وراحة أو الزيادة في ساعات هذه الأيام؛ القسمة على 30 افتراض حساب للأجر الشهري"],
+    ...(invalidDays ? [["تنبيه المدخلات", `مجموع الأيام ${totalDays} يتجاوز 31؛ لا تعتمد النتيجة قبل التصحيح`]] : []),
+    ["إجمالي الأجر الشهري المدخل قبل الإضافات", `${monthlyTotal.toFixed(2)} جنيه`],
+    ["الإجمالي قبل الخصومات", `${(monthlyTotal+result.total).toFixed(2)} جنيه`],
+  ];
+  return <section className="rounded-3xl border-2 bg-white p-5 shadow-sm md:p-8" style={{borderColor:C.teal}}>
+    <h3 className="mb-2 text-2xl font-bold">حاسبة العمل الإضافي (الأوفر تايم)</h3>
+    <p className="mb-6 text-sm text-muted-foreground">حدد نظام منشأتك ووعاء الأجر، ثم وزّع ساعات الإضافي بين النهار والليل.</p>
+    <div className="space-y-5">
+      <label className="block text-sm font-semibold" htmlFor="est">نوع المنشأة / طبيعة العمل<select id="est" value={estKey} onChange={e=>setEstKey(e.target.value as EstKey)} className="mt-2 h-12 w-full rounded-xl border bg-white px-3">{ESTABLISHMENTS.map(e=><option key={e.value} value={e.value}>{e.label}</option>)}</select></label>
+      <p className="rounded-xl p-3 text-sm" style={{background:est.color+"14"}}>{est.note}</p>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {numberField("daily-hours", "ساعات العمل اليومية المعتمدة (بدون الراحة المنفصلة)", dailyHours, v => { setDailyHours(v); setHoursBasis(""); }, 8, .5, 1)}
+        {numberField("shift-hours", "ساعات الوردية الفعلية يوميًا", shiftHours, setShiftHours, 12, .5)}
       </div>
-      <div className="space-y-5">
-        <div>
-          <Label className="mb-2 block font-semibold">الأجر الشهري (جنيه):</Label>
-          <input
-            type="number"
-            min={0}
-            step={0.01}
-            value={salaryInput}
-            onChange={(e) => setSalaryInput(e.target.value)}
-            className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
-            style={{ borderColor: C.teal + "66" }}
-          />
-          <p className="mt-1 text-xs text-muted-foreground">الأجر الأساسي الشهري بالجنيه — اكتبه مباشرة</p>
-        </div>
-        <div>
-          <Label className="mb-2 block font-semibold">نوع المنشأة / طبيعة العمل</Label>
-          <Select value={estKey} onValueChange={(v) => setEstKey(v as EstKey)}>
-            <SelectTrigger className="w-full bg-white text-right">
-              <SelectValue placeholder="اختر نوع المنشأة" />
-            </SelectTrigger>
-            <SelectContent dir="rtl">
-              {ESTABLISHMENTS.map((e) => (
-                <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="mt-2 flex items-start gap-2 rounded-xl p-3 text-xs leading-relaxed" style={{ background: est.color + "18", color: est.color }}>
-            <FileCheck className="mt-0.5 h-4 w-4 shrink-0" />
-            {est.note}
-          </p>
-          <p className="mt-2 rounded-xl border bg-white p-3 text-center text-sm" style={{ borderColor: C.amber, background: C.amberLight }}>
-                        قيمة اليوم = {salary} ÷ 30 يوم (الشهر القانوني = 30 يوم) = {dayValue.toFixed(2)} جنيه — قيمة الساعة = ÷ {est.maxDaily} ساعة فعلي ({est.maxDaily === 7 ? "صناعية" : "غير صناعية"}) ={
-" "}
-            <span className="font-mono-ar font-black" style={{ color: est.color }}>{rate.toFixed(2)} جنيه/ساعة</span>
-          </p>
-        </div>
-        <div>
-          <Label className="mb-2 block font-semibold">ساعات الوردية اليومي الفعلي (ساعة):</Label>
-          <input
-            type="number"
-            min={4}
-            max={12}
-            step={0.5}
-            value={shiftHours}
-            onChange={(e) => {
-              const n = parseFloat(e.target.value);
-              setShiftHours(isNaN(n) || n < 4 ? 4 : Math.min(n, 12));
-            }}
-            className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
-            style={{ borderColor: C.teal + "66" }}
-          />
-          <p className="mt-1 text-xs text-muted-foreground">أساس الحساب {est.maxDaily} ساعات فعلية يوميًا — أي زيادة عن الحد يوميًا تُحسب إضافي تلقائيًا</p>
-        </div>
-
-        <p className="font-display font-bold" style={{ color: C.navy }}>أيام الراحة والإجازات اللي اشتغلتها (الشهر القانوني = {workDays} يوم)؟</p>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <Label className="mb-2 block font-semibold">أيام الراحة الأسبوعية:</Label>
-            <input
-              type="number"
-              min={0}
-              max={10}
-              step={1}
-              value={restDays}
-              onChange={(e) => {
-                const n = parseInt(e.target.value);
-                setRestDays(isNaN(n) || n < 0 ? 0 : Math.min(n, 10));
-              }}
-              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.35_0.05_250)]"
-              style={{ borderColor: C.navy + "66" }}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">أيام اشتغلتها بدل يوم الراحة الأسبوعية — أجر يوم زيادة + يوم راحة تعويضي خلال الأسبوع اللي وراه (م 121 ق 14/2025)</p>
-          </div>
-          <div>
-            <Label className="mb-2 block font-semibold">أيام الإجازات الرسمية:</Label>
-            <input
-              type="number"
-              min={0}
-              max={10}
-              step={1}
-              value={holidayDays}
-              onChange={(e) => {
-                const n = parseInt(e.target.value);
-                setHolidayDays(isNaN(n) || n < 0 ? 0 : Math.min(n, 10));
-              }}
-              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.5_0.08_60)]"
-              style={{ borderColor: C.amber + "66" }}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">أيام اشتغلتها في العطلات الرسمية — تُحسب بضعف الأجر أو يوم راحة تعويضي (م 129 ق 14/2025)</p>
-          </div>
-          <div>
-            <Label className="mb-2 block font-semibold">أيام العمل النظامية:</Label>
-            <input
-              type="number"
-              min={0}
-              max={30}
-              step={1}
-              value={workDays}
-              onChange={(e) => {
-                const n = parseInt(e.target.value);
-                setWorkDays(isNaN(n) || n < 0 ? 0 : Math.min(n, 30));
-              }}
-              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
-              style={{ borderColor: C.teal + "66" }}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">أدخل أيام الوردية الفعلية فقط؛ لا تشمل أيام الراحة والعطلات المدخلة منفصلة. تقسيم الأجر الشهري على 30 لا يعني العمل 30 يومًا.</p>
-          </div>
-        </div>
-
-        <p className="font-display font-bold" style={{ color: C.navy }}>هل شغلت ساعات إضافية يدويًا غير أيام الورد (اختياري)؟</p>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <Label className="mb-2 block font-semibold">ساعات إضافية نهارية في الشهر كله (×1.35):</Label>
-            <input
-              type="number"
-              min={0}
-              max={60}
-              step={0.5}
-              value={dayOvertimeHours}
-              onChange={(e) => {
-                const n = parseFloat(e.target.value);
-                setDayOvertimeHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 60));
-              }}
-              className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
-              style={{ borderColor: C.teal + "66" }}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">ساعات إضافية نهارية شغلتها — تُعوض بزيادة 35% على أجر الساعة (م 121 ق 14/2025)</p>
-          </div>
-          <div>
-            <Label className="mb-2 block font-semibold">ساعات إضافية ليلية في الشهر كله (×1.70):</Label>
-            <input
-              type="number"
-              min={0}
-              max={60}
-              step={0.5}
-              value={nightHours}
-              onChange={(e) => {
-                const n = parseFloat(e.target.value);
-                setNightHours(isNaN(n) || n < 0 ? 0 : Math.min(n, 60));
-              }}
-            className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.35_0.05_250)]"
-            style={{ borderColor: C.navy + "66" }}
-          />
-            <p className="mt-1 text-xs text-muted-foreground">ساعات ليلية إضافية لم تدخل ضمن الوردية؛ لا تكرر هنا ساعات حسبتها الحاسبة تلقائيًا.</p>
-          </div>
-        </div>
-
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={nightShift} onChange={e => setNightShift(e.target.checked)} /> الوردية ليلية — تعويض الإضافي التلقائي بزيادة 70% بدلًا من 35%</label>
-        {est.weeklyOvertimeCap !== null && <p className="text-xs">الحد الأسبوعي للإضافي {est.weeklyOvertimeCap} ساعة؛ راجعه من كشف أسبوعي مستقل، ولا يستنتج من مجموع الشهر.</p>}
-        <div className="rounded-xl border bg-white p-3 text-center text-sm" style={{ borderColor: est.color, background: est.color + "14" }}>
-          <span className="font-mono-ar font-bold" style={{ color: est.color }}>
-            {overtimeHours.toFixed(1)} ساعة إضافية تلقائية{dayOvertimeHours > 0 ? ` + ${dayOvertimeHours} ساعة نهارية يدوية` : ""}
-          </span>
-          <span className="mx-2 text-muted-foreground">=</span>
-          <span className="font-mono-ar">{workDays} يوم × {shiftHours} ساعة = {workedHours.toFixed(0)} ساعة فعلي</span>
-          <span className="mx-2 text-muted-foreground">−</span>
-          <span className="font-mono-ar">أساس الحساب {legalActualHours.toFixed(0)} ساعة ({legalWeekly} فعلي × {weeksWorked.toFixed(1)} أسبوع)</span>
-        </div>
-
-        {(dayCapHit || weekCapHit || restDayWarn) && (
-          <div className="flex items-start gap-2 rounded-xl border-2 p-3 text-sm font-semibold leading-relaxed" style={{ borderColor: C.amber, background: C.amberLight, color: C.amber }}>
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-            <span>
-              {dayCapHit &&
-                `في الأعمال التجهيزية والحراسة والنظافة (قرار 292/2025) الحد الأقصى للإضافي ساعتان في اليوم — وردك (${shiftHours} ساعة) يتجاوز الحد ${est.maxDaily}+2.`}
-              {" "}
-              {weekCapHit &&
-                `مجموع الساعات الإضافية (${(overtimeHours + dayOvertimeHours + nightHours).toFixed(1)}) تجاوز الحد الأسبوعي ${est.weeklyOvertimeCap} ساعة بقرار 292/2025.`}
-              {" "}
-              {restDayWarn &&
-                `عدد أيام الراحة اللي اشتغلتها (${restDays}) أكثر من أسابيعك الفعلية (${weeksWorked.toFixed(1)}) — راجع المدخلات.`}
-            </span>
-          </div>
-        )}
-
-        <div className="space-y-2 rounded-2xl border p-4 text-sm" style={{ background: C.cream }}>
-          <p className="font-semibold text-muted-foreground">الحساب خطوة بخطوة:</p>
-          {(automaticDayHours + dayOvertimeHours) > 0 && (
-            <p>
-              {automaticDayHours > 0 && <span className="font-mono-ar">{automaticDayHours.toFixed(1)}</span>} {automaticDayHours > 0 ? "ساعة إضافية نهارية تلقائية" : ""} {automaticDayHours > 0 && dayOvertimeHours > 0 ? "+ " : ""} {dayOvertimeHours > 0 && <span className="font-mono-ar">{dayOvertimeHours} ساعة إضافية نهارية يدوية</span>}{dayOvertimeHours > 0 ? "" : ""} × {rate.toFixed(2)} جنيه × 1.35 ={" "}
-              <span className="font-mono-ar font-bold" style={{ color: C.teal }}>{dayComp.toFixed(2)}</span> جنيه
-            </p>
-          )}
-          {restDays > 0 && (
-            <p>
-              <span className="font-mono-ar">{restDays}</span> يوم راحة أسبوعية اشتغلها × {dayValue.toFixed(2)} جنيه (أجر يوم كامل) ={" "}
-              <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{restComp.toFixed(2)}</span> جنيه{" "}
-              <span className="text-xs text-muted-foreground">+ يوم راحة تعويضي خلال الأسبوع اللي وراه (م 121 ق 14/2025)</span>
-            </p>
-          )}
-          {holidayHours > 0 && (
-            <p>
-              <span className="font-mono-ar">{holidayDays}</span> يوم إجازة رسمية × {dayValue.toFixed(2)} جنيه × 2 (أجر اليوم الإضافي) ={" "}
-              <span className="font-mono-ar font-bold" style={{ color: C.amber }}>{holidayComp.toFixed(2)}</span> جنيه
-            </p>
-          )}
-          {dayOvertimeHours > 0 && (
-            <p>
-              <span className="font-mono-ar">{dayOvertimeHours}</span> ساعة إضافية نهارية يدوية × {rate.toFixed(2)} جنيه × 1.35 ={" "}
-              <span className="font-mono-ar font-bold" style={{ color: C.teal }}>{(dayOvertimeHours * rate * 1.35).toFixed(2)}</span> جنيه
-            </p>
-          )}
-          {(nightHours + automaticNightHours) > 0 && (
-            <p>
-              <span className="font-mono-ar">{nightHours + automaticNightHours}</span> ساعة إضافية ليلية × {rate.toFixed(2)} جنيه × 1.70 ={" "}
-              <span className="font-mono-ar font-bold" style={{ color: C.navy }}>{nightComp.toFixed(2)}</span> جنيه
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between rounded-2xl px-5 py-4 text-white shadow-md" style={{ background: C.teal }}>
-          <span className="font-display font-bold">قيمة الإضافي:</span>
-          <span className="font-mono-ar text-2xl font-black">
-            <AnimatedNumber value={total} /> جنيه
-          </span>
-        </div>
-        <div className="flex items-center justify-between rounded-2xl border-2 px-5 py-4" style={{ borderColor: C.navy, background: C.navyLight }}>
-          <span className="font-display font-bold" style={{ color: C.navy }}>إجمالي الأجر بعد الإضافات:</span>
-          <span className="font-mono-ar text-2xl font-black" style={{ color: C.navy }}>
-            {(salary + total).toFixed(2)} جنيه
-          </span>
-        </div>
-        <p className="text-center text-xs text-muted-foreground">الأجر الأساسي {salary.toFixed(2)} جنيه + قيمة الإضافي {total.toFixed(2)} جنيه = {salary + total} جنيه</p>
+      <label htmlFor="hours-basis" className="block text-sm font-semibold">سند ساعات العمل: العقد / اللائحة / النظام المطبق<input id="hours-basis" placeholder="مثال: نظام 7 ساعات كميزة أفضل مثبتة بعقد أو لائحة" value={hoursBasis} onChange={e=>setHoursBasis(e.target.value)} className="mt-2 w-full rounded-xl border p-3" /></label>
+      <p className="text-xs">اختيار الصناعي لا يفرض 7 ساعات قانونًا. البداية هنا 7 ساعات كمثال لميزة أفضل؛ غيّرها إلى 8 عند انطباق نظام 8 ساعات. الساعات الأقل تستلزم سندًا بالمنشأة. حدود العمل الأسبوعية تُراجع من كشف أسبوعي مستقل.</p>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {numberField("wage", "وعاء الأجر الشهري لحساب الإضافي (جنيه)", salary, setSalary, 100000000, .01)}
+        {numberField("monthly-total", "إجمالي الأجر الشهري قبل الإضافات (جنيه)", monthlyTotal, setMonthlyTotal, 100000000, .01)}
       </div>
+      <label htmlFor="wage-basis" className="block text-sm font-semibold">مكونات وعاء الأجر وسند اعتماده<input id="wage-basis" value={wageBasis} onChange={e=>setWageBasis(e.target.value)} placeholder="مثال: الأجر المستحق المعتمد وفق العقد واللائحة ومراجعة المادة 121" className="mt-2 w-full rounded-xl border p-3" /></label>
+      <p className="text-xs">المادة 121 تربط المقابل بأجر ساعة العمل الأصلية وزيادة النهار أو الليل. لا تفترض أن الأجر الأساسي أو أجر الاشتراك التأميني وحده هو الوعاء الصحيح؛ حدد المكونات المستحقة وفق تعريف الأجر والنظام المنطبق. إجمالي المرتب مستقل عن وعاء الحساب.</p>
+      <div className="grid gap-5 sm:grid-cols-3">
+        {numberField("work-days", "أيام الوردية الفعلية فقط", workDays, setWorkDays, 31)}
+        {numberField("rest-days", "أيام الراحة الأسبوعية التي عُملت", restDays, setRestDays, 5)}
+        {numberField("holiday-days", "أيام العطلات الرسمية التي عُملت", holidayDays, setHolidayDays, 15)}
+      </div>
+      <p className="text-xs">أدخل كل يوم مرة واحدة. الأيام المتداخلة بين عطلة وراحة تحتاج مراجعة مستقلة. القسمة على 30 هنا أساس حساب قيمة اليوم للأجر الشهري، وليست عدد أيام الحضور ولا قاعدة لكل مدة قانونية.</p>
+      {invalidDays && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm">مجموع الأيام {totalDays} يتجاوز 31 يومًا؛ صحح التكرار قبل اعتماد الملخص.</p>}
+      <p className="rounded-xl border p-3 text-sm">الإضافي التلقائي = {workDays} × الحد الموجب من ({shiftHours} − {dailyHours}) = {result.automaticHours.toFixed(2)} ساعة. يُفترض ثبات الوردية في الأيام المدخلة؛ افصل الورديات المختلفة في تسويات مستقلة.</p>
+      {numberField("automatic-night", "من الإضافي التلقائي: عدد الساعات التي وقعت ليلًا خلال الشهر", Math.min(automaticNightHours,result.automaticHours), setAutomaticNightHours, result.automaticHours, .5)}
+      <p className="text-xs">باقي الإضافي التلقائي نهاري. وزّع وقت الإضافي نفسه، وليس كل ساعات الوردية، حسب فترات النهار والليل المنطبقة.</p>
+      <div className="grid gap-5 sm:grid-cols-2">
+        {numberField("extra-day", "إضافي نهاري خارج الوردية المدخلة فقط", extraDayHours, setExtraDayHours, 744, .5)}
+        {numberField("extra-night", "إضافي ليلي خارج الوردية المدخلة فقط", extraNightHours, setExtraNightHours, 744, .5)}
+      </div>
+      <p className="text-xs">لا تكرر الساعات التلقائية في الخانات اليدوية، ولا تُدرج عمل أيام الراحة والعطلات فيها. هذه الحاسبة لا تعالج تجاوز الساعات في أيام الراحة أو تداخل الاستحقاقات.</p>
+      <label className="flex gap-2 text-sm"><input type="checkbox" checked={holidayTimeOff} onChange={e=>setHolidayTimeOff(e.target.checked)} />العطلات الرسمية: اختيار يوم بديل بطلب كتابي من العامل بدل المقابل النقدي الإضافي (م 129).</label>
+      <p className="text-xs">الراحة الأسبوعية: أجر يوم زيادة مع يوم راحة خلال الأسبوع التالي (م 121). العطلة الرسمية: مثلي أجر اليوم زيادة على أجره، أو يوم بديل بطلب كتابي (م 129). الأجر العادي مفترض ضمن الأجر الشهري المدخل.</p>
+      {capHit && <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm">وردية الأعمال التجهيزية والحراسة والنظافة تتجاوز ساعتين إضافيتين يوميًا حسب ملخص القرار 292؛ راجع قانونية التكليف.</p>}
+      {est.weeklyOvertimeCap !== null && <p className="text-xs">الإضافي للأعمال الخاصة: حد {est.weeklyOvertimeCap} ساعة أسبوعيًا؛ لا يمكن إثبات الالتزام الأسبوعي من مجموع الشهر.</p>}
+      <div className="rounded-2xl border p-4" id="overtime-summary">
+        <h4 className="mb-3 text-lg font-bold">ملخص الحساب — حازم موسى</h4>
+        <p className="mb-3 text-xs">{est.label} · تحديث النموذج 30 أكتوبر 2026 · {invalidDays || !wageBasis.trim() || !hoursBasis.trim() ? "تقديري — استكمال المدخلات والمراجعة مطلوب" : "حساب وفق المدخلات — يخضع لمراجعة السند"}</p>
+        <dl className="space-y-2 text-sm">{summary.map(([label,value])=><div key={label} className="grid gap-1 border-b py-2 sm:grid-cols-2"><dt className="font-semibold">{label}</dt><dd className="break-words">{value}</dd></div>)}</dl>
+      </div>
+      <PrintSummary targetId="overtime-summary" label="طباعة ملخص الإضافي / حفظ PDF" />
     </div>
-  );
+  </section>;
 }
+
 
 /* =================================================================
    حاسبة الإجازة المرضية
@@ -491,7 +280,7 @@ function SickLeaveCalculator() {
             className="h-12 w-full rounded-xl border-2 bg-white px-4 text-center font-mono-ar text-lg font-bold outline-none transition-colors focus:border-[oklch(0.45_0.09_165)]"
             style={{ borderColor: C.teal + "66" }}
           />
-          <p className="mt-1 text-xs text-muted-foreground">يعادل <span className="font-mono-ar font-bold">{months.toFixed(2)} شهر</span> (الشهر في القانون = 30 يومًا ثابتة — أي يوم = 1/30 من الشهر)</p>
+          <p className="mt-1 text-xs text-muted-foreground">يعادل <span className="font-mono-ar font-bold">{months.toFixed(2)} شهر</span> (للتقدير العددي هنا: الشهر 30 يومًا وقيمة اليوم 1/30 من الأجر. تُراجع المدد بالتواريخ الفعلية والقرار الطبي عند التسوية)</p>
         </div>
         {kind === "industrial" && (
           <div>
@@ -559,7 +348,7 @@ function SickLeaveCalculator() {
           <p className="font-semibold text-muted-foreground">التفصيل:</p>
           {detail.steps.map((s) => (
             <p key={s.label}>
-              {s.label} ({s.pct}): <span className="font-mono-ar font-bold">{s.amount.toFixed(0)}</span> جنيه
+              {s.label} ({s.pct}): <span className="font-mono-ar font-bold">{s.amount.toFixed(2)}</span> جنيه
             </p>
           ))}
         </div>
@@ -570,7 +359,7 @@ function SickLeaveCalculator() {
               {law === "new" ? (
                 <>
                   <p><strong>المادة 131 من قانون العمل 14/2025 (سارية من 1/9/2025، تُلغي القانون 12/2003):</strong> للعامل بالمنشآت الصناعية التي يسري عليها قانون تيسير منح تراخيص المنشآت الصناعية (15/2017) إجازة مرضية <strong>كل ثلاث سنوات خدمة</strong> على أساس: ثلاثة أشهر بأجر كامل، ثم ستة أشهر بـ 85% من أجره، ثم ثلاثة أشهر بـ 75% من أجره — وذلك إذا قررت الجهة الطبية المختصة احتمال شفائه.</p>
-                  <p><strong>الخصم من التزام صاحب العمل:</strong> يُخصم من أجر صاحب العمل ما يدفعه نظام التأمين الاجتماعي من تعويض عن الأجر.</p>
+                  <p><strong>الخصم من التزام صاحب العمل:</strong> يُخصم من التزام صاحب العمل ما يدفعه نظام التأمين الاجتماعي من تعويض عن الأجر.</p>
                   <p><strong>متجمد الإجازات السنوية:</strong> للعامل أن يستفيد من متجمد إجازاته السنوية إلى جانب المرضية، أو يطلب تحويلها إلى سنوية إذا كان له رصيد.</p>
                   <p><strong>حماية من الفصل:</strong> لا يجوز إنهاء العقد بسبب المرض إلا بعد استنفاد الإجازات المرضية ومتجمد السنوية (الحكم المقابل للمادة 127 القديمة).</p>
                 </>
@@ -594,10 +383,23 @@ function SickLeaveCalculator() {
         <div className="flex items-center justify-between rounded-2xl px-5 py-4 text-white shadow-md" style={{ background: kindColor }}>
           <span className="font-display font-bold">{kind === "industrial" ? "إجمالي الأجر المستحق عن الفترة:" : "التعويض التأميني عن الفترة:"}</span>
           <span className="font-mono-ar text-2xl font-black">
-            <AnimatedNumber value={detail.total} /> جنيه
+            <AnimatedNumber value={detail.total} decimals={2} /> جنيه
           </span>
         </div>
         {kind === "industrial" && <p className="rounded-xl border p-3 text-sm">تعويض التأمينات المدخل: {insurancePaid.toFixed(2)} جنيه — استكمال صاحب العمل: {Math.max(0,detail.total-insurancePaid).toFixed(2)} جنيه. {insurancePaid > detail.total ? "التعويض المدخل يتجاوز الأجر المستحق؛ راجع المستندات قبل الاعتماد." : "يُدخل التعويض من بيان معتمد عن نفس الفترة؛ الصفر لا يثبت عدم الاستحقاق التأميني."}</p>}
+        <div id="sick-summary" className="rounded-2xl border p-4 text-sm space-y-2">
+          <h4 className="text-lg font-bold">ملخص الإجازة المرضية — حازم موسى</h4>
+          <p>تحديث النموذج: 30 أكتوبر 2026 · نتيجة تقديرية وفق المدخلات والمستندات الطبية.</p>
+          <p>{kindName} — {kind === "industrial" ? (law === "new" ? "م 131 ق 14/2025" : "م 50 ق 12/2003 — تاريخي") : "م 76 ق 148/2019"}</p>
+          <p>الأجر {wage.toFixed(2)} جنيه · المدة الحالية {days} يوم · السابق {previousDays} يوم في {kind === "industrial" ? "دورة الثلاث سنوات" : "السنة الميلادية"}.</p>
+          <p>أساس التقدير: قسمة الأجر على 30؛ تقسم الفترات عند تغير السنة أو الأجر أو النظام، وتُراجع بدايات ونهايات الشهور من المستندات.</p>
+          {kind !== "industrial" && <p>الحد الأدنى المدخل: {minimumWage.toFixed(2)} جنيه · مرض مزمن معتمد: {chronic ? "نعم" : "لا"}. {!minimumWage ? "لم يحدد الحد الأدنى؛ استكمله قبل الاعتماد." : ""}</p>}
+          {detail.steps.map(step => <p key={step.label}>{step.label} ({step.pct}): {step.amount.toFixed(2)} جنيه</p>)}
+          <p className="font-bold">إجمالي {kind === "industrial" ? "الأجر المستحق" : "التعويض التأميني"}: {detail.total.toFixed(2)} جنيه</p>
+          {kind === "industrial" && <p>تعويض التأمينات المدخل: {insurancePaid.toFixed(2)} — استكمال صاحب العمل: {Math.max(0,detail.total-insurancePaid).toFixed(2)} جنيه. {insurancePaid > detail.total ? "تحذير: التعويض المدخل أكبر من الاستحقاق؛ راجع البيان." : "يلزم بيان تعويض معتمد عن نفس الفترة."}</p>}
+          {previousDays + days > (kind === "industrial" ? 360 : 180) && !(kind === "commercial" && chronic) && <p>تجاوزت المدخلات مدة الشرائح في هذا النموذج؛ الأيام خارجها لم تُحتسب. راجع الاستحقاق الطبي والتأميني بصورة مستقلة.</p>}
+        </div>
+        <PrintSummary targetId="sick-summary" label="طباعة ملخص المرضية / حفظ PDF" />
       </div>
     </div>
   );
@@ -647,6 +449,7 @@ export default function Calculators() {
           </div>
         </div>
 
+        <div className="mt-8"><LegalReferences /></div>
         <div className="mt-10 flex items-start gap-3 rounded-3xl border-2 p-5 text-sm leading-relaxed" style={{ borderColor: C.teal, background: C.tealLight }}>
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" style={{ color: C.teal }} />
           <p>
