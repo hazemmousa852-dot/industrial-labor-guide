@@ -798,7 +798,7 @@ function Footer() {
 
 export default function Home() {
   return (
-    <div className="min-h-screen paper-grain" style={{ background: C.cream }}>
+    <div className="hm-ui min-h-screen" style={{ background: C.cream }}>
       <Hero />
       <div id="compare" className="container">
         <Compare />
