@@ -209,3 +209,15 @@
     }
   }
 }
+/* Selected calculation prints as a separate document flow, without blank pages. */
+.calculation-print-root { display: none; }
+@media print {
+  body[data-print-summary] > :not(#calculation-print-root) { display: none !important; }
+  #calculation-print-root {
+    display: block !important; color: #111; background: white;
+    font-size: 11pt; direction: rtl; width: 100%;
+  }
+  #calculation-print-root h4 { margin-bottom: 5mm; }
+  #calculation-print-root dl > div { break-inside: avoid; }
+  @page { size: A4; margin: 15mm; }
+}

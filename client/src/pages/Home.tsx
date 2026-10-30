@@ -1,3 +1,4 @@
+import LegalReferences from "@/components/LegalReferences";
 /*
  * ستايل "دفتر المراجع العمالي" — Editorial Ledger
  * خلفيات ورقية كريمية، أخضر زيتي للصناعي / أزرق ليلي للتجاري
@@ -212,7 +213,7 @@ function Hero() {
         />
         <div className="container relative">
           <p className="font-mono-ar mb-4 inline-block rounded-full px-4 py-1.5 text-xs font-semibold" style={{ background: C.amberLight, color: C.amber }}>
-            دليل عملي مبسط · بدون نصوص قوانين
+            دليل عملي مبسط · شرح وأمثلة ومراجع
           </p>
           <h1 className="font-display max-w-3xl text-4xl font-black leading-[1.25] md:text-6xl">
             الفرق بين المنشآت
@@ -240,7 +241,7 @@ function Hero() {
           </div>
           <div className="mt-12 grid max-w-3xl grid-cols-3 gap-4">
             {[
-              ["7 + 1", "ساعات الصناعي"],
+              ["7 أو 8 + راحة", "الصناعي حسب النظام المعتمد"],
               ["8 + 1", "ساعات غير الصناعية"],
               ["×1.35 / ×1.70", "معاملات الأوفر"],
             ].map(([v, l]) => (
@@ -280,7 +281,7 @@ function Compare() {
             <div className="flex items-start gap-3 rounded-xl p-3" style={{ background: C.tealLight }}>
               <Clock className="mt-0.5 h-5 w-5 shrink-0" style={{ color: C.teal }} />
               <p>
-                <strong>ساعات العمل:</strong> 7 ساعات فعلية + ساعة راحة ={" "}
+                <strong>مثال لنظام أفضل مُعتمد:</strong> 7 ساعات فعلية + ساعة راحة ={" "}
                 <span className="font-mono-ar font-bold" style={{ color: C.teal }}>8 ساعات تواجُد</span>
               </p>
             </div>
@@ -338,9 +339,9 @@ function Compare() {
       {/* خلاصة سريعة */}
       <div className="mt-10 grid gap-4 border-t-2 pt-8 md:grid-cols-3" style={{ borderColor: C.teal + "44" }}>
         {[
-          { icon: Factory, title: "القاعدة اللي تفكر بيها", text: "لو فيه تصنيع وتحويل مواد = صناعية، حتى لو شكلها مكتب أو مخزن تابع للمصنع.", color: C.teal },
-          { icon: Clock, title: "الفرق العملي في اليوم", text: "الصناعي يطلع قبل غير الصناعي بساعة — 8 ساعات تواجُد مقابل 9.", color: C.teal },
-          { icon: Briefcase, title: "ليه الفرق ده؟", text: "الدليل يعتمد 7 ساعات للصناعية و8 لغير الصناعية كأساس حساب، مع فصل الراحة ومراعاة المزايا الأفضل. والاستحقاق المرضي الصناعي له نطاق خاص بالمادة 131.", color: C.amber },
+          { icon: Factory, title: "القاعدة اللي تفكر بيها", text: "التصنيع مثال تعليمي للنشاط الصناعي. انطباق الحكم يتحدد بنطاق القانون والترخيص وطبيعة المنشأة؛ تبعية مكتب أو مخزن وحدها لا تحسم كل الأحكام.", color: C.teal },
+          { icon: Clock, title: "الفرق العملي في اليوم", text: "في مثال نظام الـ7 ساعات: التواجد 8 ساعات مع ساعة راحة. وفي نظام الـ8 ساعات: التواجد 9 ساعات. راجع النظام الفعلي بالمنشأة.", color: C.teal },
+          { icon: Briefcase, title: "ليه الفرق ده؟", text: "الـ7 ساعات هنا مثال لميزة أفضل بعقد أو لائحة، وليست حدًا عامًا لكل مصنع. الحاسبة تتيح اختيار الساعات المعتمدة، والمرضية الصناعية لها نطاق خاص بالمادة 131.", color: C.amber },
         ].map(({ icon: Icon, title, text, color }, i) => (
           <FadeUp key={title} delay={i * 70} className="flex flex-col gap-3 rounded-2xl p-5" style={{ background: color === C.teal ? C.tealLight : C.amberLight }}>
             <Icon className="h-6 w-6" style={{ color }} />
@@ -358,13 +359,13 @@ function Compare() {
 ================================================================= */
 function Hours() {
   const rows = [
-    { type: "صناعية", work: 7, rest: 1, total: 8, color: C.teal },
-    { type: "غير صناعية", work: 8, rest: 1, total: 9, color: C.navy },
+    { type: "صناعية — مثال ميزة أفضل 7 ساعات", work: 7, rest: 1, total: 8, color: C.teal },
+    { type: "نظام 8 ساعات — صناعية أو غير صناعية", work: 8, rest: 1, total: 9, color: C.navy },
   ];
   return (
     <Section num="02" label="ثانياً · ساعات التواجد" title="ساعات التواجد اليومية — الحساب سهل" style={{ background: "#fff" }}>
-      <div className="overflow-hidden rounded-3xl border shadow-sm">
-        <table className="w-full text-right">
+      <div className="overflow-x-auto rounded-3xl border shadow-sm">
+        <table className="w-full min-w-[520px] text-right">
           <thead>
             <tr style={{ background: C.tealLight }}>
               {["نوع المنشأة", "ساعات العمل الفعلية", "مدة الراحة", "إجمالي التواجُد"].map((h) => (
@@ -439,12 +440,12 @@ function Hours() {
                     ))}
                   </div>
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    {r.type === "صناعية"
+                    {r.work === 7
                       ? "7 ساعات فعلي تُقسَّم على فترتين (5 ساعات ثم 2 ساعة) بينهما ساعة راحة — التواجد الكلي 8 ساعات."
                       : "8 ساعات فعلي تُقسَّم على فترتين (5 ساعات ثم 3 ساعات) بينهما ساعة راحة — التواجد الكلي 9 ساعات في المنشأة."}
                   </p>
                   <p className="font-mono-ar text-xs font-semibold" style={{ color: C.amber }}>
-                    {r.type === "صناعية" ? "5 شغل + 1 راحة + 2 شغل = 8 ساعات تواجُد" : "5 شغل + 1 راحة + 3 شغل = 9 ساعات تواجُد"}
+                    {r.work === 7 ? "5 شغل + 1 راحة + 2 شغل = 8 ساعات تواجُد" : "5 شغل + 1 راحة + 3 شغل = 9 ساعات تواجُد"}
                   </p>
                 </div>
               );
@@ -507,7 +508,7 @@ function Decisions() {
                 <li>• صاحب العمل يقدر يزيد الساعات لمواجهة ضرورات غير عادية — بضوابط المادة 121 (موافقة وإعلاء الحد).</li>
               </ul>
             ),
-            app: "تطبيق عملي: عامل في مصنع حديد شغال من 8 الصبح — أقصى ساعة فعلي يوصلها 4 العصر (مع ساعة راحة)، ولو عدى كده يبقى أوفر تايم ×1.35 أو ×1.70.",
+            app: "تطبيق عملي: من 8 صباحًا إلى 5 مساءً مع ساعة راحة = 8 ساعات عمل فعلية. ومن 8 إلى 4 مع ساعة راحة = 7 ساعات فعلية. بداية الإضافي تتحدد بالنظام المعتمد والمزايا الأفضل.",
             accTitle: "تفاصيل القرار 289",
             accItems: [
               ["الحد اليومي", "8 ساعات فعلي — لا تدخل فيها الراحة"],
@@ -627,9 +628,9 @@ function Decisions() {
       <FadeUp className="mt-8 flex items-start gap-3 rounded-3xl border-2 p-5 text-sm leading-relaxed" style={{ borderColor: C.teal, background: C.tealLight }}>
         <Scale className="mt-0.5 h-6 w-6 shrink-0" style={{ color: C.teal }} />
         <p>
-          <strong>ملاحظة منهجية:</strong> هذه القرارات صدرت بعد المحاضرة، وهي بتحدّث الحد اليومي للمنشآت الصناعية
-          إلى 8 ساعات فعلي (قرار 289). أساس الحساب المعتمد في هذا الدليل للصناعية 7 ساعات فعلية وراحة منفصلة كميزة أفضل، ولا يُنسب رقم 7 إلى القرار 289؛
-          والقرارات الجديدة موضحة فوق عشان تعرف آخر تحديث.
+          <strong>أساس الأمثلة:</strong> يورد ملخص القرار 289 حد 8 ساعات فعلية و48 أسبوعيًا.
+          نظام 7 ساعات يُستخدم عند ثبوته كميزة أفضل بعقد أو لائحة؛ لا يُنسب إلى القرار 289.
+          اختَر ساعات منشأتك في الحاسبة، وافصل الراحة غير المحتسبة عن ساعات العمل الفعلية.
         </p>
       </FadeUp>
     </Section>
@@ -642,9 +643,9 @@ function Decisions() {
 function Summary() {
   const rows = [
     { item: "طبيعة النشاط", ind: "تصنيع وتحويل مواد خام", com: "خدمات وتجارة بدون تحويل مواد" },
-    { item: "ساعات العمل الفعلية", ind: "7 ساعات", com: "8 ساعات" },
+    { item: "ساعات العمل الفعلية", ind: "8 ساعات كحد عام؛ 7 إذا كانت ميزة أفضل معتمدة", com: "8 ساعات كحد عام، مع مراعاة الاستثناءات والمزايا الأفضل" },
     { item: "ساعة الراحة", ind: "1 ساعة", com: "1 ساعة" },
-    { item: "إجمالي التواجُد اليومي", ind: "8 ساعات", com: "9 ساعات" },
+    { item: "التواجد مع ساعة راحة منفصلة", ind: "9 ساعات في نظام 8؛ أو 8 في نظام 7", com: "9 ساعات في مثال نظام 8" },
     { item: "المرضية — القانون 14/2025 (م 131)*", ind: "3 شهور 100% + 6 شهور 85% + 3 شهور 75%", com: "75% أول 90 يوم ثم 85% حتى 180 يوم/سنة" },
     { item: "معامل الأوفر تايم", ind: "نهار ×1.35 / ليل ×1.70", com: "نهار ×1.35 / ليل ×1.70" },
   ];
@@ -659,8 +660,8 @@ function Summary() {
             المقارنة الشاملة في لمحة
           </h2>
         </FadeUp>
-        <FadeUp className="overflow-hidden rounded-3xl border shadow-sm">
-          <table className="w-full text-right">
+        <FadeUp className="overflow-x-auto rounded-3xl border shadow-sm">
+          <table className="w-full min-w-[520px] text-right">
             <thead>
               <tr>
                 <th className="font-display px-5 py-4 text-sm font-bold text-muted-foreground">البند</th>
@@ -706,7 +707,7 @@ function Article131() {
       <div className="space-y-6">
         <FadeUp className="overflow-hidden rounded-3xl border-2 bg-white" style={{ borderColor: C.teal }}>
           <div className="px-6 py-4 text-white" style={{ background: C.teal }}>
-            <p className="font-display text-lg font-bold">نص المادة 131 (الموجز الرسمي)</p>
+            <p className="font-display text-lg font-bold">شرح مبسط للمادة 131 — ليس نقلًا حرفيًا</p>
           </div>
           <div className="p-6 leading-loose text-foreground/90">
             <p className="mb-4">
@@ -736,41 +737,10 @@ function Article131() {
         </FadeUp>
 
         <FadeUp className="space-y-4">
-          {/* المنشآت الصناعية */}
-          <div className="overflow-hidden rounded-3xl border-2 bg-white" style={{ borderColor: C.teal }}>
-            <div className="px-6 py-4 text-white" style={{ background: C.teal }}>
-              <p className="font-display text-lg font-bold">المنشآت الصناعية (م 131 ق 14/2025)</p>
-            </div>
-            <div className="p-6 leading-loose text-foreground/90">
-              <p className="mb-4">
-                للعامل بالمنشآت الصناعية التي يسري عليها قانون تيسير منح تراخيص المنشآت الصناعية (15/2017) إجازة مرضية
-                <strong> كل ثلاث سنوات خدمة</strong> على أساس: <strong>3 شهور بأجر كامل</strong>، ثم <strong>6 شهور بـ85%</strong>،
-                ثم <strong>3 شهور بـ75%</strong> — وذلك إذا قررت الجهة الطبية المختصة احتمال شفائه.
-              </p>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.teal, background: C.tealLight }}>
-                  <p className="font-display text-sm font-bold">الشهور 1 – 3</p>
-                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.teal }}>100%</p>
-                  <p className="mt-1 text-xs text-muted-foreground">بأجر كامل</p>
-                </div>
-                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.navy, background: C.navyLight }}>
-                  <p className="font-display text-sm font-bold">الشهور 4 – 9</p>
-                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.navy }}>85%</p>
-                  <p className="mt-1 text-xs text-muted-foreground">بأجر يعادل 85%</p>
-                </div>
-                <div className="rounded-2xl border-2 p-4 text-center" style={{ borderColor: C.amber, background: C.amberLight }}>
-                  <p className="font-display text-sm font-bold">الشهور 10 – 12</p>
-                  <p className="font-mono-ar mt-1 text-2xl font-black" style={{ color: C.amber }}>75%</p>
-                  <p className="mt-1 text-xs text-muted-foreground">بأجر يعادل 75%</p>
-                </div>
-              </div>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li>يُخصم من التزام صاحب العمل ما يسدده نظام التأمين الاجتماعي من تعويض عن الأجر.</li>
-                <li>للعامل الاستفادة من متجمد إجازاته السنوية إلى جانب المرضية، أو تحويل المرضية إلى سنوية إذا كان له رصيد.</li>
-              </ul>
-            </div>
+          <div className="rounded-2xl border p-5 text-sm leading-relaxed" style={{ background: C.tealLight }}>
+            <h3 className="font-bold">تطبيق المرضية الصناعية</h3>
+            <p>النسب والدورة موضحة أعلاه. قبل التسوية، تحقق من خضوع المنشأة لقانون 15/2017، والأيام المعتمدة طبيًا، والمستهلك من دورة الثلاث سنوات، وتعويض التأمينات عن نفس الفترة.</p>
           </div>
-
           {/* المنشآت غير الصناعية */}
           <div className="overflow-hidden rounded-3xl border-2 bg-white" style={{ borderColor: C.navy }}>
             <div className="px-6 py-4 text-white" style={{ background: C.navy }}>
@@ -849,6 +819,7 @@ export default function Home() {
         </div>
       </div>
       <Summary />
+      <div className="container py-8"><LegalReferences /></div>
       <Footer />
     </div>
   );
